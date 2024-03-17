@@ -22,6 +22,40 @@ pub struct TreeNode<T> {
 impl<T> TreeNode<T> {
     pub fn binary_tree_insert(self, data:T) {
         // binary tree insertion here
+        if self.key == key {
+            return;
+        }
+
+        let temp = if key < self.key {
+            &mut self.left_child
+        } else {
+            &mut self.right_child
+        };
+
+        match temp {
+            Some(node) => {
+                node.borrow_mut().binary_tree_insert(key.clone());
+            }
+            None => {
+                // TODO: THIS LINE NEEDS CHANGING
+                let mut new_node = TreeNode::new_red_black(key.clone());
+                
+                match &self.parent.as_ref() {
+                    Some(x) => {
+                        new_node.parent = Some(Rc::clone(&self.parent.as_ref().unwrap()));
+                    }
+                    None => {
+                        new_node.parent = None
+                    }
+                }
+                
+                if key < self.key {
+                    self.left_child = Some(Rc::new(RefCell::new(new_node)))
+                } else {
+                    self.right_child = Some(Rc::new(RefCell::new(new_node)))
+                };
+            }
+        }
     }
     pub fn rotate_nodes(self) {
 
