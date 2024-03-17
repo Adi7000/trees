@@ -104,6 +104,13 @@ impl<T: Ord + Clone> TreeNode<T> {
         right_child.borrow_mut().left_child = Some(root.clone());
         self.parent = Some(right_child.clone());
 
+        //TODO Here is how I plan to handle node specific changes liek color
+        //Feel free to move this block to start 
+        match self.kind {
+            Node::Avl(_) => {},
+            Node::RedBlack(_) => {},
+        }
+
     }
 
     pub fn right_rotate(&mut self) {
@@ -135,6 +142,13 @@ impl<T: Ord + Clone> TreeNode<T> {
         // Reconnect left child to root
         left_child.borrow_mut().right_child = Some(root.clone());
         self.parent = Some(left_child.clone());
+
+        //TODO Here is how I plan to handle node specific changes liek color
+        //Feel free to move this block to start 
+        match self.kind {
+            Node::Avl(_) => {},
+            Node::RedBlack(_) => {},
+        }
     }
 }
 
