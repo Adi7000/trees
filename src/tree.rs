@@ -30,10 +30,12 @@ pub struct TreeNode<T> {
 
 impl<T: Ord + Clone> TreeNode<T> {
     pub fn binary_tree_insert(&mut self, key:T) {
+        // DONT NEED TO INSERT IF KEY PRESENT
         if self.key == key {
             return;
         }
 
+        // TRAVERSE THE TREE BY ONE STEP
         let temp = if key < self.key {
             &mut self.left_child
         } else {
@@ -42,12 +44,14 @@ impl<T: Ord + Clone> TreeNode<T> {
 
         match temp {
             Some(fahrin) => {
+                // RECURSIVE STEP
                 fahrin.borrow_mut().binary_tree_insert(key.clone());
             }
             None => {
-
+                // NEEDS CHANGING MAYBE
                 let mut new_node = TreeNode::new_red_black(key.clone());
-                
+
+                // SETTING PARENT FIELD
                 match &self.parent.as_ref() {
                     Some(x) => {
                         new_node.parent = Some(Rc::clone(&self.parent.as_ref().unwrap()));
@@ -56,7 +60,8 @@ impl<T: Ord + Clone> TreeNode<T> {
                         new_node.parent = None
                     }
                 }
-                
+
+                // INSERTING NEW NODE
                 if key < self.key {
                     self.left_child = Some(Rc::new(RefCell::new(new_node)))
                 } else {
