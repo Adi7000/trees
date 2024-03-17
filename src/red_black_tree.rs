@@ -88,3 +88,65 @@ pub fn insert_node(rb_tree: &mut RedBlackTree, key: u32) {
         }
     }
 }
+
+
+pub fn recolor(rb_tree: &mut RedBlackTree){
+    let rcnode = rb_tree.as_ref().unwrap();
+    let mut current_node = rcnode.borrow_mut();
+
+    if current_node.parent.is_none(){
+        // IF THIS IS ROOT, JUST MAKE IT BLACK
+        current_node.color = NodeColor::Black;
+    }
+    else{
+            let mut parent_node = current_node.parent.as_ref().unwrap().borrow_mut();
+            if let NodeColor::Black = parent_node.color {
+                // IF PARENT IS BLACK IS RETURN
+                return;
+            }
+
+            else{
+                //extract grandparent_node
+                let grandparent_rcnode = parent_node.parent.as_ref().unwrap();
+                let mut grandparent_node = grandparent_rcnode.borrow_mut();
+
+                let mut is_me_left = false;
+                if current_node.key < parent_node.key{
+                    is_me_left = true;
+                }
+                
+                let mut is_parent_left = false;
+
+                // EXTRACT UNCLE
+                let mut uncle_node = if grandparent_node.key < parent_node.key {
+                    // UNCLE IS LEFT CHILD
+                    grandparent_node.left.as_ref().unwrap().borrow_mut()
+                    
+                } else {
+                     // UNCLE IS RIGHT CHILD
+                    is_parent_left = true;
+                    grandparent_node.right.as_ref().unwrap().borrow_mut()
+                };
+
+               
+                match uncle_node.color{
+                    NodeColor::Black => {
+                        //do rotation
+                    }
+            
+                    NodeColor::Red => {
+                        //change uncle and parent to black
+                        uncle_node.color = NodeColor::Black;
+                        parent_node.color = NodeColor::Black;
+
+                        //change grandparent to red
+                        grandparent_node.color = NodeColor::Red;
+
+                        //call recolor on grandparent
+                        recolor(&mut parent_node.parent);
+                    }
+                }
+            }
+        
+    }
+}
