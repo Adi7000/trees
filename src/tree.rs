@@ -11,17 +11,25 @@ enum Node {
     Avl(AvlNode),
     RedBlack(RedBlackNode)
 }
+// pub struct TreeNode<T> {
+//     pub key: T,
+//     pub parent: Option<Rc<RefCell<TreeNode<T>>>>,
+//     left: Option<Rc<RefCell<TreeNode<T>>>>,
+//     right: Option<Rc<RefCell<TreeNode<T>>>>,
+//     kind: Node,
+// }
+
+#[derive(Debug)]
 pub struct TreeNode<T> {
     pub key: T,
     pub parent: Option<Rc<RefCell<TreeNode<T>>>>,
-    left: Option<Rc<RefCell<TreeNode<T>>>>,
-    right: Option<Rc<RefCell<TreeNode<T>>>>,
-    kind: Node,
+    pub left_child: Option<Rc<RefCell<TreeNode<T>>>>,
+    pub right_child: Option<Rc<RefCell<TreeNode<T>>>>,
+    pub kind: Node,
 }
 
-impl<T> TreeNode<T> {
-    pub fn binary_tree_insert(self, data:T) {
-        // binary tree insertion here
+impl<T: Ord + Clone> TreeNode<T> {
+    pub fn binary_tree_insert(&mut self, key:T) {
         if self.key == key {
             return;
         }
@@ -33,11 +41,11 @@ impl<T> TreeNode<T> {
         };
 
         match temp {
-            Some(node) => {
-                node.borrow_mut().binary_tree_insert(key.clone());
+            Some(fahrin) => {
+                fahrin.borrow_mut().binary_tree_insert(key.clone());
             }
             None => {
-                // TODO: THIS LINE NEEDS CHANGING
+
                 let mut new_node = TreeNode::new_red_black(key.clone());
                 
                 match &self.parent.as_ref() {
@@ -57,8 +65,17 @@ impl<T> TreeNode<T> {
             }
         }
     }
+
     pub fn rotate_nodes(self) {
 
     }
 }
+
+
+// impl<T> TreeNode<T> {
+//     pub fn binary_tree_insert(self, data:T) {
+//     }
+//     pub fn rotate_nodes(self) {
+//     }
+// }
 
