@@ -7,10 +7,13 @@ use std::rc::Rc;
 /*Lets try not to change this file too much unless a method is being implemebted
 If you really need to change the structure please discuuss with the team first */
 
-enum Node {
+#[derive(Debug)]
+pub enum Node {
     Avl(AvlNode),
     RedBlack(RedBlackNode)
 }
+
+
 // pub struct TreeNode<T> {
 //     pub key: T,
 //     pub parent: Option<Rc<RefCell<TreeNode<T>>>>,
