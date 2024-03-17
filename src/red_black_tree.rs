@@ -20,11 +20,6 @@ use std::rc::Weak;
 // impl<T: Ord + Clone> TreeNode<T> {
 // }
 
-
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::rc::Weak;
-
 #[derive(Clone, Debug, PartialEq)]
 enum NodeColor {
     Red,
@@ -175,7 +170,7 @@ pub fn recolor(rb_tree: & RedBlackTree){
                         // IF UNCLE BLACK, DO ROTATION
                     }
                     else {
-                        // CHANGE UNCLE TO RED
+                        // CHANGE UNCLE TO BLACK
                         if is_parent_left {
                             grandparent_rcnode.borrow().right.as_ref().unwrap().borrow_mut().color = NodeColor::Black.into();
                         }
@@ -183,21 +178,21 @@ pub fn recolor(rb_tree: & RedBlackTree){
                             grandparent_rcnode.borrow().left.as_ref().unwrap().borrow_mut().color = NodeColor::Black.into();
                         }
 
-                        // CHANGE PARENT TO RED
+                        // CHANGE PARENT TO BLACK
                         let parentrcnew = Rc::clone(&rcnode.borrow().parent.as_ref().unwrap());
                         *parentrcnew.borrow().color.borrow_mut() = NodeColor::Black;
 
                         // CHANGE GRAND PARENT TO RED
                         *grandparent_rcnode.borrow().color.borrow_mut() = NodeColor::Red;
 
-                        println!("HEREEE");
-                        println!(
-                            "child {:#?}, parent {:#?}, GB {:#?}, uncle {:#?}", 
-                            rcnode.borrow().color, 
-                            parent_node.borrow().color, 
-                            grandparent_rcnode.borrow().color, 
-                            grandparent_rcnode.borrow().left.as_ref().unwrap().borrow().color
-                        );
+                        // println!("HEREEE");
+                        // println!(
+                        //     "child {:#?}, parent {:#?}, GB {:#?}, uncle {:#?}", 
+                        //     rcnode.borrow().color, 
+                        //     parent_node.borrow().color, 
+                        //     grandparent_rcnode.borrow().color, 
+                        //     grandparent_rcnode.borrow().left.as_ref().unwrap().borrow().color
+                        // );
 
                         // CALL RECOLOR ON GRAND PARENT
                         recolor(&parent_node.borrow().parent);
