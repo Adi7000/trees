@@ -8,8 +8,6 @@
 //     root: TreeNode<T>
 // }
 
-use std::cell::RefCell;
-use std::rc::Rc;
 use crate::tree::*;
 
 #[derive(Debug)]
@@ -33,10 +31,6 @@ impl<T: Ord + Clone> TreeNode<T> {
             parent: None,
             kind: Node::RedBlack(RedBlackNode{color: NodeColor::Red}),
         }
-    }
-
-    pub fn recolor_red_black(&mut self) {
-
     }
 
     pub fn red_black_insert_node(&mut self, key: T) {
