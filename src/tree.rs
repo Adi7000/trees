@@ -74,24 +74,12 @@ impl<T: Ord + Clone> TreeNode<T> {
         }
     }
 
-    // pub fn left_rotate_nodes(&mut self) { // self is the root node
-    //     if let Some(mut r_child) = self.right_child {
-    //         if let Some(mut l_child) = self.left_child {
-    //             l_child.borrow_mut().
-    //         } else {
-    //             panic!("Node must have left child to rotate");
-    //         }
-    //     } else {
-    //         panic!("Node must have right child to rotate");
-    //     }
-    // }
-
     pub fn left_rotate(&mut self) {
         // Note all terminology is relative to the initial tree configuration
 
         let right_child = self.right_child.take().expect("Node must have right child to rotate");
         let root = right_child.borrow_mut().parent.take().unwrap();  //same as self but is smart pointer
-        
+
         // Connect parrent (or None) and right child
         if let Some(parent) = self.parent.take() {
             right_child.borrow_mut().parent = Some(parent.clone());
