@@ -74,10 +74,82 @@ impl<T: Ord + Clone> TreeNode<T> {
         }
     }
 
-    pub fn rotate_nodes(self) {
+    // pub fn left_rotate_nodes(&mut self) { // self is the root node
+    //     if let Some(mut r_child) = self.right_child {
+    //         if let Some(mut l_child) = self.left_child {
+    //             l_child.borrow_mut().
+    //         } else {
+    //             panic!("Node must have left child to rotate");
+    //         }
+    //     } else {
+    //         panic!("Node must have right child to rotate");
+    //     }
+    // }
+
+    pub fn left_rotate(&mut self) {
+        // Note all terminology is relative to the initial tree configuration
+
+        let right_child = self.right_child.take().expect("Node must have right child to rotate");
+        let root = right_child.borrow_mut().parent.take().unwrap();  //same as self but is smart pointer
+        
+        // Connect parrent (or None) and right child
+        if let Some(parent) = self.parent.take() {
+            right_child.borrow_mut().parent = Some(parent.clone());
+            if parent.borrow().key > right_child.borrow().key {
+                parent.borrow_mut().left_child = Some(right_child.clone());
+            } else {
+                parent.borrow_mut().right_child = Some(right_child.clone());
+            }
+        } else {
+            right_child.borrow_mut().parent = None;
+        }
+
+        // Connect right child's left child (or none) and root
+        if let Some(right_childs_left_child) = right_child.borrow_mut().left_child.take() {
+            right_childs_left_child.borrow_mut().parent = Some(root.clone());
+            self.right_child = Some(right_childs_left_child.clone());
+        } else {
+            self.right_child = None;
+        }
+
+        // Reconnect right child to root
+        right_child.borrow_mut().left_child = Some(root.clone());
+        self.parent = Some(right_child.clone());
 
     }
+
+    pub fn right_rotate(&mut self) {
+        // Note all terminology is relative to the initial tree configuration
+
+        let left_child = self.left_child.take().expect("Node must have left child to rotate");
+        let root = left_child.borrow_mut().parent.take().unwrap(); //same as self but is smart pointer
+
+        // Connect parrent (or None) and left child
+        if let Some(parent) = self.parent.take() {
+            left_child.borrow_mut().parent = Some(parent.clone());
+            if parent.borrow().key > left_child.borrow().key {
+                parent.borrow_mut().left_child = Some(left_child.clone());
+            } else {
+                parent.borrow_mut().right_child = Some(left_child.clone());
+            }
+        } else {
+            left_child.borrow_mut().parent = None;
+        }
+
+        // Connect left child's right child (or none) and root
+        if let Some(left_childs_right_child) = left_child.borrow_mut().right_child.take() {
+            left_childs_right_child.borrow_mut().parent = Some(root.clone());
+            self.left_child = Some(left_childs_right_child.clone());
+        } else {
+            self.left_child = None;
+        }
+
+        // Reconnect left child to root
+        left_child.borrow_mut().right_child = Some(root.clone());
+        self.parent = Some(left_child.clone());
+    }
 }
+
 
 
 // impl<T> TreeNode<T> {
