@@ -7,7 +7,7 @@ use std::rc::Rc;
 /*Lets try not to change this file too much unless a method is being implemebted
 If you really need to change the structure please discuuss with the team first */
 
-#[derive(Debug)]
+#[derive(Debug,Clone, Copy)]
 pub enum Node {
     Avl(AvlNode),
     RedBlack(RedBlackNode)
@@ -22,54 +22,67 @@ pub enum Node {
 //     kind: Node,
 // }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct TreeNode<T> {
     pub key: T,
     pub parent: Option<Rc<RefCell<TreeNode<T>>>>,
     pub left_child: Option<Rc<RefCell<TreeNode<T>>>>,
     pub right_child: Option<Rc<RefCell<TreeNode<T>>>>,
+    pub root: Option<Rc<RefCell<TreeNode<T>>>>,
     pub kind: Node,
 }
 
-impl<T: Ord + Clone> TreeNode<T> {
-    pub fn binary_tree_insert(&mut self, key:T) {
+impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
+    pub fn new(node: Node, key:T) -> Rc<RefCell<TreeNode<T>>> {
+
+        let ptr_node: Rc<RefCell<TreeNode<T>>>= Rc::new(RefCell::new(TreeNode{
+            kind: node,
+            key: key,
+            root: None,
+            parent: None,
+            left_child: None,
+            right_child: None,
+        }));
+        ptr_node.borrow_mut().root = Some(ptr_node.clone());
+        ptr_node
+    }
+    pub fn binary_tree_insert(&mut self, key:T) -> Option<Rc<RefCell<TreeNode<T>>>>{
+        let rc_current_node = self.root.clone().unwrap();
         // DONT NEED TO INSERT IF KEY PRESENT
         if self.key == key {
-            return;
+            return None;
         }
+            
+        if key < self.key {
+            // WILL INSERT ON LEFT SUBTREE
+            
+            // IF WE ARE CURRENTLY AT LEAF (I.E. NONE), INSERT
+            if self.left_child.is_none(){
 
-        // TRAVERSE THE TREE BY ONE STEP
-        let temp = if key < self.key {
-            &mut self.left_child
-        } else {
-            &mut self.right_child
-        };
-
-        match temp {
-            Some(fahrin) => {
-                // RECURSIVE STEP
-                fahrin.borrow_mut().binary_tree_insert(key.clone());
+                let new_node = TreeNode::new(self.kind, key);
+                new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
+                self.left_child = Some(new_node.clone());
+                //FIXME recolor(&rc_current_node.borrow().left); // REBALANCE TREE
+                Some(new_node)
             }
-            None => {
-                // NEEDS CHANGING MAYBE
-                let mut new_node = TreeNode::new_red_black(key.clone());
-
-                // SETTING PARENT FIELD
-                match &self.parent.as_ref() {
-                    Some(x) => {
-                        new_node.parent = Some(Rc::clone(&self.parent.as_ref().unwrap()));
-                    }
-                    None => {
-                        new_node.parent = None
-                    }
-                }
-
-                // INSERTING NEW NODE
-                if key < self.key {
-                    self.left_child = Some(Rc::new(RefCell::new(new_node)))
-                } else {
-                    self.right_child = Some(Rc::new(RefCell::new(new_node)))
-                };
+            
+            else{
+                // RECURSIVE STEP
+                self.left_child.clone().unwrap().borrow_mut().binary_tree_insert(key)
+            }
+        } else {
+            // WILL INSERT ON RIGHT SUBTREE
+            if self.right_child.is_none(){
+                let new_node = TreeNode::new(self.kind, key);
+                new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
+                self.right_child = Some(new_node.clone());
+                //FIXME recolor(&rc_current_node.borrow().right); // REBALANCE TREE
+                Some(new_node)
+            }
+            
+            else{
+                // RECURSIVE STEP
+                self.right_child.clone().unwrap().borrow_mut().binary_tree_insert(key)
             }
         }
     }
@@ -149,6 +162,23 @@ impl<T: Ord + Clone> TreeNode<T> {
             Node::Avl(_) => {},
             Node::RedBlack(_) => {},
         }
+    }
+
+    pub fn print_in_order_traverse(&mut self) {
+        if let Some(l_node) = self.left_child.take() {
+            self.left_child = Some(l_node.clone());
+            l_node.borrow_mut().print_in_order_traverse();
+        }
+        match self.kind {
+            Node::Avl(_) => println!("(Key: {:#?})", self.key),
+            Node::RedBlack(node) => println!("(Key: {:#?}, Color: {:#?})", self.key, node.color),
+        }
+        if let Some(r_node) = self.right_child.take() {
+            self.right_child = Some(r_node.clone());
+            r_node.borrow_mut().print_in_order_traverse();
+        }
+        
+        
     }
 }
 

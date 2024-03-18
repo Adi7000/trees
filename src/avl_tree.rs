@@ -1,13 +1,15 @@
 use crate::tree::*;
+use std::{cell::RefCell, rc::Rc};
 
-#[derive(Debug)]
+
+#[derive(Debug,Clone, Copy)]
 pub struct AvlNode {
 }
 
 pub struct AvlTree<T> {
-    root: TreeNode<T>
+    root: Option<Rc<RefCell<TreeNode<T>>>>
 }
-impl<T> AvlTree<T> {
+impl<T: Ord + Clone> AvlTree<T> {
     pub fn insert(self, data: T) {
     }
 }
