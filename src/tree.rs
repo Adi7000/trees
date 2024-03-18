@@ -87,11 +87,22 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
         }
     }
 
-    pub fn left_rotate(&mut self) {
+    /** 
+     * returns the new root node of the tree if the root node is changed while rotating
+     * This is returned to proplerly update the root node of a tree
+     */
+    pub fn left_rotate(&mut self) -> Option<Rc<RefCell<TreeNode<T>>>>{
         // Note all terminology is relative to the initial tree configuration
 
         let right_child = self.right_child.take().expect("Node must have right child to rotate");
-        let root = right_child.borrow_mut().parent.take().unwrap();  //same as self but is smart pointer
+        let root = self.root.clone().unwrap();
+        
+        let return_node;
+        if self.parent.is_none() { //this node is root node of tree
+            return_node = Some(right_child.clone());
+        } else {
+            return_node = None;
+        }
 
         // Connect parrent (or None) and right child
         if let Some(parent) = self.parent.take() {
@@ -124,13 +135,26 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
             Node::RedBlack(_) => {},
         }
 
+        return_node
+
     }
 
-    pub fn right_rotate(&mut self) {
+    /** 
+     * returns the new root node of the tree if the root node is changed while rotating
+     * This is returned to proplerly update the root node of a tree
+     */
+    pub fn right_rotate(&mut self) -> Option<Rc<RefCell<TreeNode<T>>>>{
         // Note all terminology is relative to the initial tree configuration
 
         let left_child = self.left_child.take().expect("Node must have left child to rotate");
-        let root = left_child.borrow_mut().parent.take().unwrap(); //same as self but is smart pointer
+        let root = self.root.clone().unwrap();
+
+        let return_node;
+        if self.parent.is_none() { //this node is root node of tree
+            return_node = Some(left_child.clone());
+        } else {
+            return_node = None;
+        }
 
         // Connect parrent (or None) and left child
         if let Some(parent) = self.parent.take() {
@@ -162,6 +186,7 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
             Node::Avl(_) => {},
             Node::RedBlack(_) => {},
         }
+        return_node
     }
 
     pub fn print_in_order_traverse(&mut self) {

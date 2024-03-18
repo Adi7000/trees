@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use crate::tree;
 
 pub struct RedBlackTree<T> {
-    root: Option<Rc<RefCell<tree::TreeNode<T>>>>
+    pub root: Option<Rc<RefCell<tree::TreeNode<T>>>>
 }
 
 #[derive(Debug,Clone, Copy)]
@@ -26,16 +26,18 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
     pub fn new() -> Self{
         RedBlackTree { root:None}
     }
-    pub fn insert(&mut self, key: T) {
+    pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<tree::TreeNode<T>>>>{ //FIXME Remove this return value (for debugging)
         if let Some(root) = &self.root {
             let new_node = root.borrow_mut().binary_tree_insert(key);
             //TODO Handle recoloring here
+            new_node
         } else {
             let red_black_node = RedBlackNode {
                 color: NodeColor::Black
             };
             let rc_node = tree::TreeNode::new(tree::Node::RedBlack(red_black_node),key);
-            self.root = Some(rc_node);
+            self.root = Some(rc_node.clone());
+            Some(rc_node)
         }
     }
 
