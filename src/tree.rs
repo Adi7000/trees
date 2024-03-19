@@ -30,6 +30,7 @@ pub struct TreeNode<T> {
     pub right_child: Option<Rc<RefCell<TreeNode<T>>>>,
     pub root: Option<Rc<RefCell<TreeNode<T>>>>,
     pub kind: Node,
+    pub height: u32, //number of edges from the furthest down leaf node
 }
 
 impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
@@ -42,6 +43,7 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
             parent: None,
             left_child: None,
             right_child: None,
+            height: 0,
         }));
         ptr_node.borrow_mut().root = Some(ptr_node.clone());
         ptr_node
@@ -62,13 +64,14 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
                 let new_node = TreeNode::new(self.kind, key);
                 new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
                 self.left_child = Some(new_node.clone());
+                self.height = std::cmp::max::<u32>(self.height, 1);
                 //FIXME recolor(&rc_current_node.borrow().left); // REBALANCE TREE
                 Some(new_node)
-            }
-            
-            else{
+            } else{
                 // RECURSIVE STEP
-                self.left_child.clone().unwrap().borrow_mut().binary_tree_insert(key)
+                let inserted_node: Option<Rc<RefCell<TreeNode<T>>>> = self.left_child.clone().unwrap().borrow_mut().binary_tree_insert(key);
+                self.height = std::cmp::max::<u32>(self.height, self.left_child.clone().unwrap().borrow_mut().height + 1);
+                inserted_node
             }
         } else {
             // WILL INSERT ON RIGHT SUBTREE
@@ -76,13 +79,14 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
                 let new_node = TreeNode::new(self.kind, key);
                 new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
                 self.right_child = Some(new_node.clone());
+                self.height = std::cmp::max::<u32>(self.height, 1);
                 //FIXME recolor(&rc_current_node.borrow().right); // REBALANCE TREE
                 Some(new_node)
-            }
-            
-            else{
+            } else{
                 // RECURSIVE STEP
-                self.right_child.clone().unwrap().borrow_mut().binary_tree_insert(key)
+                let inserted_node: Option<Rc<RefCell<TreeNode<T>>>> = self.right_child.clone().unwrap().borrow_mut().binary_tree_insert(key);
+                self.height = std::cmp::max::<u32>(self.height, self.right_child.clone().unwrap().borrow_mut().height + 1);
+                inserted_node
             }
         }
     }
@@ -195,8 +199,8 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
             l_node.borrow_mut().print_in_order_traverse();
         }
         match self.kind {
-            Node::Avl(_) => println!("(Key: {:#?})", self.key),
-            Node::RedBlack(node) => println!("(Key: {:#?}, Color: {:#?})", self.key, node.color),
+            Node::Avl(_) => println!("(Key: {:#?}, Height: {:#?})", self.key, self.height),
+            Node::RedBlack(node) => println!("(Key: {:#?}, Height: {:#?}, Color: {:#?})", self.key, self.height, node.color),
         }
         if let Some(r_node) = self.right_child.take() {
             self.right_child = Some(r_node.clone());
