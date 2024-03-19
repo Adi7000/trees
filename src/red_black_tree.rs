@@ -3,14 +3,13 @@ use std::{cell::RefCell, rc::Rc};
 use crate::tree;
 
 pub struct RedBlackTree<T> {
-    pub root: Option<Rc<RefCell<tree::TreeNode<T>>>>
+    pub root: Option<Rc<RefCell<tree::TreeNode<T>>>>,
 }
 
-#[derive(Debug,Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct RedBlackNode {
-    pub color: NodeColor
+    pub color: NodeColor,
 }
-
 
 // impl<T: Ord + Clone> TreeNode<T> {
 // }
@@ -22,27 +21,28 @@ pub enum NodeColor {
 }
 // type RedBlackTree = Option<Rc<RefCell<TreeNode>>>;
 
-impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
-    pub fn new() -> Self{
-        RedBlackTree { root:None}
+impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
+    pub fn new() -> Self {
+        RedBlackTree { root: None }
     }
-    pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<tree::TreeNode<T>>>>{ //FIXME Remove this return value (for debugging)
+    pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<tree::TreeNode<T>>>> {
+        //FIXME Remove this return value (for debugging)
         if let Some(root) = &self.root {
             let new_node = root.borrow_mut().binary_tree_insert(key);
             //TODO Handle recoloring here
             new_node
         } else {
             let red_black_node = RedBlackNode {
-                color: NodeColor::Black
+                color: NodeColor::Black,
             };
-            let rc_node = tree::TreeNode::new(tree::Node::RedBlack(red_black_node),key);
+            let rc_node = tree::TreeNode::new(tree::Node::RedBlack(red_black_node), key);
             self.root = Some(rc_node.clone());
             Some(rc_node)
         }
     }
 
     // IN ORDER TRAVERSAL FUNCTION
-    pub fn print_inorder (&mut self) {
+    pub fn print_inorder(&mut self) {
         let root = self.root.take();
         match root {
             Some(node) => {
@@ -53,16 +53,23 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
         }
     }
 
+    pub fn print_tree(&mut self) {
+        let root = self.root.take();
+        match root {
+            Some(node) => {
+                self.root = Some(node.clone());
+                node.borrow_mut().print_tree();
+            }
+            None => {}
+        }
+    }
+
     pub fn height(&self) -> u32 {
         self.root.clone().unwrap().borrow().height
     }
 }
 
-
-
 // INSERT NODE INTO TREE
-
-
 
 // RECOLOR TREE STARTING FROM NEWLY INSERTED NODE
 // fn recolor(rb_tree: & RedBlackTree){
@@ -93,7 +100,7 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
 
 //                 // SINCE PARENT IS RED, NEED TO GET UNCLE (FOR THIS NEED GRAND PARENT)
 //                 if parent_node.borrow().parent.as_ref().is_some() {
-                    
+
 //                     // EXTRACT GRAND PARENT IMMUTABLE REFERENCE
 //                     let grandparent_rcnode: Rc<RefCell<TreeNode>> = Rc::clone(&parent_node.borrow().parent.as_ref().unwrap());
 
@@ -131,10 +138,10 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
 
 //                         println!("BEFORE RECOLOR");
 //                         println!(
-//                             "child {:#?}, parent {:#?}, GB {:#?}, uncle {:#?}", 
-//                             rcnode.borrow().color, 
-//                             parent_node.borrow().color, 
-//                             grandparent_rcnode.borrow().color, 
+//                             "child {:#?}, parent {:#?}, GB {:#?}, uncle {:#?}",
+//                             rcnode.borrow().color,
+//                             parent_node.borrow().color,
+//                             grandparent_rcnode.borrow().color,
 //                             grandparent_rcnode.borrow().left.as_ref().unwrap().borrow().color
 //                         );
 
@@ -155,10 +162,10 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
 
 //                         println!("AFTER RECOLOR");
 //                         println!(
-//                             "child {:#?}, parent {:#?}, GB {:#?}, uncle {:#?}", 
-//                             rcnode.borrow().color, 
-//                             parent_node.borrow().color, 
-//                             grandparent_rcnode.borrow().color, 
+//                             "child {:#?}, parent {:#?}, GB {:#?}, uncle {:#?}",
+//                             rcnode.borrow().color,
+//                             parent_node.borrow().color,
+//                             grandparent_rcnode.borrow().color,
 //                             grandparent_rcnode.borrow().left.as_ref().unwrap().borrow().color
 //                         );
 
@@ -170,8 +177,6 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
 //         };
 //     }
 // }
-
-
 
 // fn main(){
 //     let mut x = new_root_node(1);
