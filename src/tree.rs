@@ -3,16 +3,14 @@ use crate::red_black_tree::RedBlackNode;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-
 /*Lets try not to change this file too much unless a method is being implemebted
 If you really need to change the structure please discuuss with the team first */
 
-#[derive(Debug,Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Node {
     Avl(AvlNode),
-    RedBlack(RedBlackNode)
+    RedBlack(RedBlackNode),
 }
-
 
 // pub struct TreeNode<T> {
 //     pub key: T,
@@ -22,7 +20,7 @@ pub enum Node {
 //     kind: Node,
 // }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct TreeNode<T> {
     pub key: T,
     pub parent: Option<Rc<RefCell<TreeNode<T>>>>,
@@ -34,9 +32,8 @@ pub struct TreeNode<T> {
 }
 
 impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
-    pub fn new(node: Node, key:T) -> Rc<RefCell<TreeNode<T>>> {
-
-        let ptr_node: Rc<RefCell<TreeNode<T>>>= Rc::new(RefCell::new(TreeNode{
+    pub fn new(node: Node, key: T) -> Rc<RefCell<TreeNode<T>>> {
+        let ptr_node: Rc<RefCell<TreeNode<T>>> = Rc::new(RefCell::new(TreeNode {
             kind: node,
             key: key,
             root: None,
@@ -48,61 +45,123 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
         ptr_node.borrow_mut().root = Some(ptr_node.clone());
         ptr_node
     }
-    pub fn binary_tree_insert(&mut self, key:T) -> Option<Rc<RefCell<TreeNode<T>>>>{
+    pub fn binary_tree_insert(&mut self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         let rc_current_node = self.root.clone().unwrap();
         // DONT NEED TO INSERT IF KEY PRESENT
         if self.key == key {
             return None;
         }
-            
+
         if key < self.key {
             // WILL INSERT ON LEFT SUBTREE
-            
-            // IF WE ARE CURRENTLY AT LEAF (I.E. NONE), INSERT
-            if self.left_child.is_none(){
 
+            // IF WE ARE CURRENTLY AT LEAF (I.E. NONE), INSERT
+            if self.left_child.is_none() {
                 let new_node = TreeNode::new(self.kind, key);
                 new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
                 self.left_child = Some(new_node.clone());
                 self.height = std::cmp::max::<u32>(self.height, 1);
                 //FIXME recolor(&rc_current_node.borrow().left); // REBALANCE TREE
                 Some(new_node)
-            } else{
+            } else {
                 // RECURSIVE STEP
-                let inserted_node: Option<Rc<RefCell<TreeNode<T>>>> = self.left_child.clone().unwrap().borrow_mut().binary_tree_insert(key);
-                self.height = std::cmp::max::<u32>(self.height, self.left_child.clone().unwrap().borrow_mut().height + 1);
+                let inserted_node: Option<Rc<RefCell<TreeNode<T>>>> = self
+                    .left_child
+                    .clone()
+                    .unwrap()
+                    .borrow_mut()
+                    .binary_tree_insert(key);
+                self.height = std::cmp::max::<u32>(
+                    self.height,
+                    self.left_child.clone().unwrap().borrow_mut().height + 1,
+                );
                 inserted_node
             }
         } else {
             // WILL INSERT ON RIGHT SUBTREE
-            if self.right_child.is_none(){
+            if self.right_child.is_none() {
                 let new_node = TreeNode::new(self.kind, key);
                 new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
                 self.right_child = Some(new_node.clone());
                 self.height = std::cmp::max::<u32>(self.height, 1);
                 //FIXME recolor(&rc_current_node.borrow().right); // REBALANCE TREE
                 Some(new_node)
-            } else{
+            } else {
                 // RECURSIVE STEP
-                let inserted_node: Option<Rc<RefCell<TreeNode<T>>>> = self.right_child.clone().unwrap().borrow_mut().binary_tree_insert(key);
-                self.height = std::cmp::max::<u32>(self.height, self.right_child.clone().unwrap().borrow_mut().height + 1);
+                let inserted_node: Option<Rc<RefCell<TreeNode<T>>>> = self
+                    .right_child
+                    .clone()
+                    .unwrap()
+                    .borrow_mut()
+                    .binary_tree_insert(key);
+                self.height = std::cmp::max::<u32>(
+                    self.height,
+                    self.right_child.clone().unwrap().borrow_mut().height + 1,
+                );
                 inserted_node
             }
         }
     }
+    /**fixes the height feild of a node and its ancestors
+     * 
+    */
+    fn fix_height_up(&mut self, borrowed_childs_height: Option<(u32, Rc<RefCell<TreeNode<T>>>)>) {
+        //Fix current node
+        let mut r_height: u32 = 0;
+        let mut l_height: u32 = 0;
 
-    /** 
+        //get height from right child
+        if let Some(ref r_node) = self.right_child {
+            //If this child is already borrowed in outerscope, get its height from outside scope
+            if let Some((borrowed_height, borrowed_pointer)) = borrowed_childs_height.clone() {
+                if Rc::ptr_eq(r_node, &borrowed_pointer) {
+                    r_height = borrowed_height;
+                } else {
+                    r_height = r_node.borrow().height;
+                }
+            } else {
+                r_height = r_node.borrow().height;
+            }
+            r_height += 1;
+        }
+        //get height form left child
+        if let Some(ref l_node) = self.left_child {
+            if let Some((borrowed_height, borrowed_pointer)) = borrowed_childs_height {
+                if Rc::ptr_eq(l_node, &borrowed_pointer) {
+                    l_height = borrowed_height;
+                } else {
+                    l_height = l_node.borrow().height;
+                }
+            } else {
+                l_height = l_node.borrow().height;
+            }
+            l_height += 1;
+        }
+        self.height = std::cmp::max::<u32>(l_height, r_height);
+
+        //Fix parent
+        if let Some(ref parent_node) = self.parent {
+            parent_node
+                .borrow_mut()
+                .fix_height_up(Some((self.height, self.root.clone().unwrap())));
+        }
+    }
+    /**
      * returns the new root node of the tree if the root node is changed while rotating
      * This is returned to proplerly update the root node of a tree
      */
-    pub fn left_rotate(&mut self) -> Option<Rc<RefCell<TreeNode<T>>>>{
+    pub fn left_rotate(&mut self) -> Option<Rc<RefCell<TreeNode<T>>>> {
         // Note all terminology is relative to the initial tree configuration
 
-        let right_child = self.right_child.take().expect("Node must have right child to rotate");
+        let right_child = self
+            .right_child
+            .take()
+            .expect("Node must have right child to rotate");
         let root = self.root.clone().unwrap();
-        
+
         let return_node;
-        if self.parent.is_none() { //this node is root node of tree
+        if self.parent.is_none() {
+            //this node is root node of tree
             return_node = Some(right_child.clone());
         } else {
             return_node = None;
@@ -132,29 +191,35 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
         right_child.borrow_mut().left_child = Some(root.clone());
         self.parent = Some(right_child.clone());
 
+        //fix height field of all nodes up
+        self.fix_height_up(None);
+
         //TODO Here is how I plan to handle node specific changes liek color
-        //Feel free to move this block to start 
+        //Feel free to move this block to start
         match self.kind {
-            Node::Avl(_) => {},
-            Node::RedBlack(_) => {},
+            Node::Avl(_) => {}
+            Node::RedBlack(_) => {}
         }
 
         return_node
-
     }
 
-    /** 
+    /**
      * returns the new root node of the tree if the root node is changed while rotating
      * This is returned to proplerly update the root node of a tree
      */
-    pub fn right_rotate(&mut self) -> Option<Rc<RefCell<TreeNode<T>>>>{
+    pub fn right_rotate(&mut self) -> Option<Rc<RefCell<TreeNode<T>>>> {
         // Note all terminology is relative to the initial tree configuration
 
-        let left_child = self.left_child.take().expect("Node must have left child to rotate");
+        let left_child = self
+            .left_child
+            .take()
+            .expect("Node must have left child to rotate");
         let root = self.root.clone().unwrap();
 
         let return_node;
-        if self.parent.is_none() { //this node is root node of tree
+        if self.parent.is_none() {
+            //this node is root node of tree
             return_node = Some(left_child.clone());
         } else {
             return_node = None;
@@ -184,11 +249,14 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
         left_child.borrow_mut().right_child = Some(root.clone());
         self.parent = Some(left_child.clone());
 
+        //fix height field of all nodes up
+        self.fix_height_up(None);
+
         //TODO Here is how I plan to handle node specific changes liek color
-        //Feel free to move this block to start 
+        //Feel free to move this block to start
         match self.kind {
-            Node::Avl(_) => {},
-            Node::RedBlack(_) => {},
+            Node::Avl(_) => {}
+            Node::RedBlack(_) => {}
         }
         return_node
     }
@@ -200,18 +268,17 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
         }
         match self.kind {
             Node::Avl(_) => println!("(Key: {:#?}, Height: {:#?})", self.key, self.height),
-            Node::RedBlack(node) => println!("(Key: {:#?}, Height: {:#?}, Color: {:#?})", self.key, self.height, node.color),
+            Node::RedBlack(node) => println!(
+                "(Key: {:#?}, Height: {:#?}, Color: {:#?})",
+                self.key, self.height, node.color
+            ),
         }
         if let Some(r_node) = self.right_child.take() {
             self.right_child = Some(r_node.clone());
             r_node.borrow_mut().print_in_order_traverse();
         }
-        
-        
     }
 }
-
-
 
 // impl<T> TreeNode<T> {
 //     pub fn binary_tree_insert(self, data:T) {
@@ -219,4 +286,3 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
 //     pub fn rotate_nodes(self) {
 //     }
 // }
-
