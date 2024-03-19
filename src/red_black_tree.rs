@@ -52,6 +52,10 @@ impl<T: Ord + Clone + std::fmt::Debug> RedBlackTree<T> {
             None => {}
         }
     }
+
+    pub fn height(&self) -> u32 {
+        self.root.clone().unwrap().borrow().height
+    }
 }
 
 

@@ -16,6 +16,7 @@ fn main(){
 
     
     rbt.print_inorder();
+    println!("Height of RBT tree is {}", rbt.height())
     // insert_node(& x, 45);
     // insert_node(& x, 35);
     // insert_node(& x, 75);
