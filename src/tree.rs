@@ -1,6 +1,7 @@
 use crate::avl_tree::AvlNode;
 use crate::red_black_tree::RedBlackNode;
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::rc::Rc;
 
 /*Lets try not to change this file too much unless a method is being implemebted
@@ -103,8 +104,8 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         }
     }
     /**fixes the height feild of a node and its ancestors
-     * 
-    */
+     *
+     */
     fn fix_height_up(&mut self, borrowed_childs_height: Option<(u32, Rc<RefCell<TreeNode<T>>>)>) {
         //Fix current node
         let mut r_height: u32 = 0;
@@ -280,43 +281,63 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
     }
 
     pub fn print_tree(&self) {
-        let inital_indent: usize = (self.height * 8).try_into().unwrap();
-        println!(
-            "{:indent$}{}:h{}",
-            "",
-            self.key,
-            self.height,
-            indent = inital_indent
-        );
-        self.print_recursive(inital_indent);
+        // let indent: usize = (self.height * 8).try_into().unwrap();
+        // print root
+        println!("{}", self.key);
+        // root's children
+        let mut node_queue = self.get_children();
+        for i in 0..self.height {
+            // get children of children
+            let mut next_queue = VecDeque::new();
+            // print current children and get next children
+            for node in &node_queue {
+                print!("{} ", node.borrow().key);
+                let children = node.borrow().get_children();
+                for child in children {
+                    next_queue.push_back(child);
+                }
+            }
+            node_queue = next_queue;
+            println!();
+        }
     }
 
-    fn print_recursive(&self, indent: usize) {
-        // println!("{:indent$}{}", "", self.key, indent = indent);
+    fn get_children(&self) -> VecDeque<Rc<RefCell<TreeNode<T>>>> {
+        let mut node_queue = VecDeque::new();
+        // let mut print_queue = VecDeque::new();
         if let Some(lc_node) = &self.left_child {
-            let left_indent = indent - 4;
-            print!(
-                "{:indent$}{}:h{}",
-                "",
-                lc_node.borrow().key,
-                lc_node.borrow().height,
-                indent = left_indent
-            );
-            lc_node.borrow().print_recursive(left_indent);
+            node_queue.push_back(lc_node.clone());
         }
         if let Some(rc_node) = &self.right_child {
-            let right_indent = indent + 4;
-            print!(
-                "{:indent$}{}:h{}",
-                "",
-                rc_node.borrow().key,
-                rc_node.borrow().height,
-                indent = right_indent,
-            );
-            rc_node.borrow().print_recursive(right_indent);
+            node_queue.push_back(rc_node.clone());
         }
-        println!();
+        node_queue
     }
+
+    // fn print_recursive(&self, depth: usize) {
+    //     let indent = 12;
+    //     if let Some(lc_node) = &self.left_child {
+    //         let left_indent = indent - 4;
+    //         print!(
+    //             "{:indent$}{}",
+    //             "",
+    //             lc_node.borrow().key,
+    //             indent = left_indent
+    //         );
+    //         lc_node.borrow().print_recursive(left_indent);
+    //     }
+    //     if let Some(rc_node) = &self.right_child {
+    //         let right_indent = indent + 4;
+    //         print!(
+    //             "{:indent$}{}",
+    //             "",
+    //             rc_node.borrow().key,
+    //             indent = right_indent
+    //         );
+    //         rc_node.borrow().print_recursive(right_indent);
+    //     }
+    //     println!();
+    // }
 }
 
 // impl<T> TreeNode<T> {
