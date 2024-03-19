@@ -31,7 +31,7 @@ pub struct TreeNode<T> {
     pub height: u32, //number of edges from the furthest down leaf node
 }
 
-impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
+impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
     pub fn new(node: Node, key: T) -> Rc<RefCell<TreeNode<T>>> {
         let ptr_node: Rc<RefCell<TreeNode<T>>> = Rc::new(RefCell::new(TreeNode {
             kind: node,
@@ -277,6 +277,45 @@ impl<T: Ord + Clone + std::fmt::Debug> TreeNode<T> {
             self.right_child = Some(r_node.clone());
             r_node.borrow_mut().print_in_order_traverse();
         }
+    }
+
+    pub fn print_tree(&self) {
+        let inital_indent: usize = (self.height * 8).try_into().unwrap();
+        println!(
+            "{:indent$}{}:h{}",
+            "",
+            self.key,
+            self.height,
+            indent = inital_indent
+        );
+        self.print_recursive(inital_indent);
+    }
+
+    fn print_recursive(&self, indent: usize) {
+        // println!("{:indent$}{}", "", self.key, indent = indent);
+        if let Some(lc_node) = &self.left_child {
+            let left_indent = indent - 4;
+            print!(
+                "{:indent$}{}:h{}",
+                "",
+                lc_node.borrow().key,
+                lc_node.borrow().height,
+                indent = left_indent
+            );
+            lc_node.borrow().print_recursive(left_indent);
+        }
+        if let Some(rc_node) = &self.right_child {
+            let right_indent = indent + 4;
+            print!(
+                "{:indent$}{}:h{}",
+                "",
+                rc_node.borrow().key,
+                rc_node.borrow().height,
+                indent = right_indent,
+            );
+            rc_node.borrow().print_recursive(right_indent);
+        }
+        println!();
     }
 }
 
