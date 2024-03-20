@@ -13,7 +13,6 @@ pub struct RedBlackNode {
     pub color: NodeColor,
 }
 
-
 #[derive(Clone, Debug, PartialEq, Copy)]
 pub enum NodeColor {
     Red,
@@ -25,20 +24,12 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
     pub fn new() -> Self {
         RedBlackTree { root: None }
     }
-    pub fn find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
-        if let Some(ref root) = self.root {
-            return root.borrow().binary_tree_find(key)
-        } else {
-            return None
-        }
-    }
     pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<tree::TreeNode<T>>>> {
         //FIXME Remove this return value (for debugging)
         if let Some(root) = &self.root {
             let new_node = root.borrow_mut().binary_tree_insert(key);
             new_node.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
-            self.recolor(&new_node);
-            //TODO Handle recoloring here
+            self.recolor(&new_node); // Handle recoloring here
             new_node
         } else {
             let red_black_node = RedBlackNode {
@@ -49,6 +40,102 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             Some(rc_node)
         }
     }
+
+
+    
+
+    pub fn delete(& mut self, key: T){
+
+        if self.root.is_none(){
+            return;
+        }
+        // VARIABLE TO HOLD NODE TO BE DELETED
+        let delete_node_rc: Rc<RefCell<TreeNode<T>>> =  Rc::clone(& self.root.as_ref().unwrap().borrow().binary_tree_find(key).as_ref().unwrap());
+
+        let mut delete_node_color: NodeColor = NodeColor::Black;
+        if let tree::Node::RedBlack(rbt) = delete_node_rc.borrow().kind {
+            delete_node_color = rbt.color.clone();
+        }
+
+        let mut x: Option<Rc<RefCell<TreeNode<T>>>>;
+        if delete_node_rc.borrow().right_child.is_none() {
+            x = delete_node_rc.borrow().left_child.clone();
+            self.root = self.transplant(&delete_node_rc.borrow().root, &x);
+        }
+        else if delete_node_rc.borrow().left_child.clone().is_none() {
+            x = delete_node_rc.borrow().right_child.clone();
+            self.root = self.transplant(&delete_node_rc.borrow().root, &x);
+        }
+        else {
+            // FIND MINIMUM RIGHT SUB TREE
+            let mut in_order_min: Option<Rc<RefCell<TreeNode<T>>>> = delete_node_rc.borrow().right_child.clone();
+            println!("in order min before transplant {:#?}", in_order_min.as_ref().unwrap().borrow().key);
+
+            while in_order_min.as_ref().unwrap().borrow().left_child.is_some() {
+                let temp: Rc<RefCell<TreeNode<T>>> = Rc::clone(&in_order_min.as_ref().unwrap().borrow().left_child.as_ref().unwrap());
+                in_order_min = Some(Rc::clone(&temp));
+            }
+
+            if let tree::Node::RedBlack(rbt) = in_order_min.as_ref().unwrap().borrow().kind {
+                delete_node_color = rbt.color.clone();
+            }
+
+            x = in_order_min.as_ref().unwrap().borrow().right_child.clone();
+            self.root = self.transplant(&in_order_min, &x);
+
+            in_order_min.as_ref().unwrap().borrow_mut().right_child = delete_node_rc.borrow().right_child.clone();
+            in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
+            self.root = self.transplant(&delete_node_rc.borrow().root, &in_order_min);
+
+            in_order_min.as_ref().unwrap().borrow_mut().left_child = Some(Rc::clone(&delete_node_rc.borrow().left_child.as_ref().unwrap()));
+            in_order_min.as_ref().unwrap().borrow().left_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
+            in_order_min.as_ref().unwrap().borrow_mut().kind = delete_node_rc.borrow().kind.clone();
+        }
+
+
+        match delete_node_color {
+            NodeColor::Black => {
+                println!("NEED DELETE FIXUP");
+                return;
+            }
+            NodeColor::Red => {
+                return
+            }
+
+        }        
+    }
+
+
+
+
+
+    pub fn transplant(
+        & self, 
+        u: & Option<Rc<RefCell<tree::TreeNode<T>>>>, 
+        v: & Option<Rc<RefCell<tree::TreeNode<T>>>>
+    ) -> Option<Rc<RefCell<tree::TreeNode<T>>>>{
+
+        let rcnode = Rc::clone(& u.as_ref().unwrap());
+
+        if rcnode.borrow().parent.is_none() {
+            return v.clone();
+        }
+        else {
+            let rc_parent: Rc<RefCell<tree::TreeNode<T>>> = Rc::clone(&rcnode.borrow().parent.as_ref().unwrap());
+            if rcnode.borrow().key < rc_parent.borrow().key {
+                rc_parent.borrow_mut().left_child = v.clone();
+            }
+            else {
+                rc_parent.borrow_mut().right_child = v.clone();
+            }
+        }
+        if v.is_some(){
+            v.as_ref().unwrap().borrow_mut().parent = rcnode.borrow().parent.clone();
+        }
+       
+        return self.root.clone();
+    }
+
 
     // IN ORDER TRAVERSAL FUNCTION
     pub fn print_inorder(&mut self) {
@@ -85,8 +172,8 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             return false;
         }
         
-        if let tree::Node::RedBlack(RBT) = parent_rb_node.as_ref().unwrap().borrow().kind {
-            if let NodeColor::Red = RBT.color.clone(){
+        if let tree::Node::RedBlack(rbt) = parent_rb_node.as_ref().unwrap().borrow().kind {
+            if let NodeColor::Red = rbt.color.clone(){
                 return true;
             }
             return false;
@@ -121,8 +208,8 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
                     let mut uncle_color: NodeColor = NodeColor::Black; // IF UNCLE IS NONE, THAT IS BLACK
                     if rc_grandparent.borrow().right_child.as_ref().is_some() {
-                        if let tree::Node::RedBlack(RBT) = rc_grandparent.borrow().right_child.as_ref().unwrap().borrow().kind {
-                            uncle_color = RBT.color.clone();
+                        if let tree::Node::RedBlack(rbt) = rc_grandparent.borrow().right_child.as_ref().unwrap().borrow().kind {
+                            uncle_color = rbt.color.clone();
                         }
                     }
 
@@ -151,7 +238,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                             rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
 
-                            rc_node.borrow_mut().fix_height();
+                            rcnode.borrow_mut().fix_height();
                             rc_parent.borrow_mut().fix_height();
 
                             rcnode = Rc::clone(&rc_grandparent);
@@ -164,8 +251,8 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
                     let mut uncle_color: NodeColor = NodeColor::Black; // IF UNCLE IS NONE, THAT IS BLACK
                     if rc_grandparent.borrow().left_child.as_ref().is_some() {
-                        if let tree::Node::RedBlack(RBT) = rc_grandparent.borrow().left_child.as_ref().unwrap().borrow().kind {
-                            uncle_color = RBT.color.clone();
+                        if let tree::Node::RedBlack(rbt) = rc_grandparent.borrow().left_child.as_ref().unwrap().borrow().kind {
+                            uncle_color = rbt.color.clone();
                         }
                     }
 
@@ -194,7 +281,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                             rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
 
-                            rc_node.borrow_mut().fix_height();
+                            rcnode.borrow_mut().fix_height();
                             rc_parent.borrow_mut().fix_height();
 
                             rcnode = Rc::clone(&rc_grandparent);
@@ -210,10 +297,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         rcnode.borrow_mut().fix_height();
         while rcnode.borrow().parent.is_some() {
             rcnode.borrow().parent.as_ref().unwrap().borrow_mut().fix_height();
-            rc_node = rcnode.borrow().parent
+            let x: Rc<RefCell<TreeNode<T>>> = Rc::clone(&rcnode.borrow().parent.as_ref().unwrap());
+
+            rcnode = Rc::clone(&x);
         }
         self.root.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
     }
+
 }
 
 
@@ -239,8 +329,8 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 //         let parent_node: Rc<RefCell<TreeNode<T>>> = Rc::clone(&rcnode.borrow().parent.as_ref().unwrap());
 //         let mut parent_color: NodeColor = NodeColor::Black;
 
-//         if let tree::Node::RedBlack(RBT) = parent_node.borrow().kind {
-//             parent_color = RBT.color.clone();
+//         if let tree::Node::RedBlack(rbt) = parent_node.borrow().kind {
+//             parent_color = rbt.color.clone();
 //         }
 
 
@@ -275,15 +365,15 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 //                     let mut uncle_color: NodeColor = NodeColor::Black; // IF UNCLE IS NONE, THAT IS BLACK
 //                     if is_parent_left {
 //                         if grandparent_rcnode.borrow().right_child.as_ref().is_some() {
-//                             if let tree::Node::RedBlack(RBT) = grandparent_rcnode.borrow().right_child.as_ref().unwrap().borrow().kind {
-//                                 uncle_color = RBT.color.clone();
+//                             if let tree::Node::RedBlack(rbt) = grandparent_rcnode.borrow().right_child.as_ref().unwrap().borrow().kind {
+//                                 uncle_color = rbt.color.clone();
 //                             }
 //                         }
 //                     }
 //                     else {
 //                         if grandparent_rcnode.borrow().left_child.as_ref().is_some() {
-//                             if let tree::Node::RedBlack(RBT) = grandparent_rcnode.borrow().left_child.as_ref().unwrap().borrow().kind {
-//                                 uncle_color = RBT.color.clone();
+//                             if let tree::Node::RedBlack(rbt) = grandparent_rcnode.borrow().left_child.as_ref().unwrap().borrow().kind {
+//                                 uncle_color = rbt.color.clone();
 //                             }
 //                         }
 //                     }
