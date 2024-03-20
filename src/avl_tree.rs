@@ -13,6 +13,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
     pub fn new() -> Self {
         AvlTree { root: None }
     }
+    pub fn find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
+        if let Some(ref root) = self.root {
+            return root.borrow().binary_tree_find(key)
+        } else {
+            return None
+        }
+    }
     pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         //FIXME Remove this return value (for debugging)
         let new_node = if let Some(root) = &self.root {

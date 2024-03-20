@@ -38,6 +38,27 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         ptr_node.borrow_mut().root = Some(ptr_node.clone());
         ptr_node
     }
+    pub fn binary_tree_find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
+        if key == self.key {
+            return self.root.clone()
+        } else if key < self.key {
+            if let Some(ref left_child) = self.left_child {
+                return left_child.borrow().binary_tree_find(key)
+            } else {
+                return None
+            }
+        } else if key > self.key {
+            if let Some(ref right_child) = self.right_child {
+                return right_child.borrow().binary_tree_find(key)
+            } else {
+                return None
+            }
+        } else {
+            return None
+        }
+        
+    }
+    
     pub fn binary_tree_insert(&mut self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         let rc_current_node = self.root.clone().unwrap();
         // DONT NEED TO INSERT IF KEY PRESENT
