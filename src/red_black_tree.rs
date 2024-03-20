@@ -55,6 +55,18 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
     }
 
+    pub fn print_preorder(&mut self) {
+        let root = self.root.take();
+        match root {
+            Some(node) => {
+                self.root = Some(node.clone());
+                node.borrow_mut().print_pre_order_traverse();
+            }
+            None => {}
+        }
+    }
+
+
     pub fn print_tree(&mut self) {
         let root = self.root.take();
         match root {
@@ -120,8 +132,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
                     match uncle_color {
 
-                        NodeColor::Black => {
-                            println!("FAhrin");
+                        NodeColor::Black => {       
                             // IF UNCLE IS BLACK
 
                             if !is_me_left {
@@ -143,7 +154,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                             rc_grandparent.borrow().right_child.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
-                            println!("FAhrin");
+
                             rcnode = Rc::clone(&rc_grandparent);
                             continue;
                         }
@@ -194,7 +205,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
         self.root.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
     }
-    
+
 }
 
 
