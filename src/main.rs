@@ -5,19 +5,14 @@ use std::env;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    let mut rbt = red_black_tree::RedBlackTree::new();
+    let mut rbt = avl_tree::AvlTree::new();
 
     rbt.insert(3);
-    let n4 = rbt.insert(4);
-    let n5 = rbt.insert(5);
-    let n6 = rbt.insert(6);
-    rbt.insert(1);
+    rbt.print_tree();
     rbt.insert(2);
-
-    n4.unwrap().borrow_mut().left_rotate();
-    n5.clone().unwrap().borrow_mut().left_rotate();
-    n6.unwrap().borrow_mut().right_rotate();
-    n5.unwrap().borrow_mut().right_rotate();
+    rbt.print_tree();
+    rbt.insert(1);
+    rbt.print_tree();
 
     
     rbt.print_inorder();

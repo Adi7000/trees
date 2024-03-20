@@ -1,4 +1,4 @@
-use crate::avl_tree::AvlNode;
+use crate::avl_tree::{self, AvlNode};
 use crate::red_black_tree::RedBlackNode;
 use std::cell::RefCell;
 use std::collections::VecDeque;
@@ -53,12 +53,12 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
             return None;
         }
 
-        if key < self.key {
+        let inserted_node = if key < self.key {
             // WILL INSERT ON LEFT SUBTREE
 
             // IF WE ARE CURRENTLY AT LEAF (I.E. NONE), INSERT
             if self.left_child.is_none() {
-                let new_node = TreeNode::new(self.kind, key);
+                let new_node = TreeNode::new(self.kind, key.clone());
                 new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
                 self.left_child = Some(new_node.clone());
                 self.height = std::cmp::max::<u32>(self.height, 1);
@@ -71,7 +71,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
                     .clone()
                     .unwrap()
                     .borrow_mut()
-                    .binary_tree_insert(key);
+                    .binary_tree_insert(key.clone());
                 self.height = std::cmp::max::<u32>(
                     self.height,
                     self.left_child.clone().unwrap().borrow_mut().height + 1,
@@ -81,7 +81,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         } else {
             // WILL INSERT ON RIGHT SUBTREE
             if self.right_child.is_none() {
-                let new_node = TreeNode::new(self.kind, key);
+                let new_node = TreeNode::new(self.kind, key.clone());
                 new_node.borrow_mut().parent = Some(Rc::clone(&rc_current_node));
                 self.right_child = Some(new_node.clone());
                 self.height = std::cmp::max::<u32>(self.height, 1);
@@ -94,16 +94,19 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
                     .clone()
                     .unwrap()
                     .borrow_mut()
-                    .binary_tree_insert(key);
+                    .binary_tree_insert(key.clone());
                 self.height = std::cmp::max::<u32>(
                     self.height,
                     self.right_child.clone().unwrap().borrow_mut().height + 1,
                 );
                 inserted_node
             }
-        }
+        };
+
+
+        inserted_node
     }
-    /**fixes the height feild of a node and its ancestors
+    /** fixes the height feild of a node and all its ancestors
      *
      */
     fn fix_height_up(&mut self, borrowed_childs_height: Option<(u32, Rc<RefCell<TreeNode<T>>>)>) {
@@ -140,12 +143,65 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         }
         self.height = std::cmp::max::<u32>(l_height, r_height);
 
-        //Fix parent
+        //Fix ancestors
         if let Some(ref parent_node) = self.parent {
             parent_node
                 .borrow_mut()
                 .fix_height_up(Some((self.height, self.root.clone().unwrap())));
         }
+    }
+     /** fixes the height of a node and its parent (parent must exist)
+     *
+     */
+    fn fix_height_self_and_parent(&mut self) {
+
+        //fix current node
+        self.fix_height();
+
+        // fix parent node's height (cannot call fix_height on parent because this node is a child and is already borrowed)
+        let mut r_height: u32 = 0;
+        let mut l_height: u32 = 0;
+
+        let rc_parent_node = self.parent.clone().unwrap();
+        let mut parent_node = rc_parent_node.borrow_mut();
+
+        //get height from parent's right child
+        if let Some(ref r_node) = parent_node.right_child {
+            //If this child is self, get its height from self
+            if Rc::ptr_eq(r_node, &self.root.clone().unwrap()) {
+                r_height = self.height;
+            } else {
+                r_height = r_node.borrow().height;
+            }
+            r_height += 1;
+        }
+        //get height form left child
+        if let Some(ref l_node) = parent_node.left_child {
+            if Rc::ptr_eq(l_node, &self.root.clone().unwrap()) {
+                l_height = self.height;
+            } else {
+                l_height = l_node.borrow().height;
+            }
+            l_height += 1;
+        }
+        parent_node.height = std::cmp::max::<u32>(l_height, r_height);
+
+        
+    }
+    /** fixes height of current node by reading children */
+    pub fn fix_height(&mut self) {
+
+        //fix current node
+        let mut r_height: u32 = 0;
+        let mut l_height: u32 = 0;
+        if let Some(ref r_node) = self.right_child {
+            r_height = r_node.borrow().height + 1;
+        }
+        if let Some(ref l_node) = self.left_child {
+            l_height = l_node.borrow().height + 1;
+        }
+        self.height = std::cmp::max::<u32>(l_height, r_height);
+
     }
     /**
      * returns the new root node of the tree if the root node is changed while rotating
@@ -193,7 +249,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         self.parent = Some(right_child.clone());
 
         //fix height field of all nodes up
-        self.fix_height_up(None);
+        self.fix_height_self_and_parent();
 
         //TODO Here is how I plan to handle node specific changes liek color
         //Feel free to move this block to start
@@ -251,7 +307,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         self.parent = Some(left_child.clone());
 
         //fix height field of all nodes up
-        self.fix_height_up(None);
+        self.fix_height_self_and_parent();
 
         //TODO Here is how I plan to handle node specific changes liek color
         //Feel free to move this block to start
