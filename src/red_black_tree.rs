@@ -95,7 +95,6 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             let rc_parent = Rc::clone(&rcnode.borrow().parent.as_ref().unwrap());
 
             if rc_parent.borrow().parent.is_some() {
-                println!("FAhrin");
                 // EXTRACT GRAND PARENT
                 let rc_grandparent = Rc::clone(&rc_parent.borrow().parent.as_ref().unwrap());
 
