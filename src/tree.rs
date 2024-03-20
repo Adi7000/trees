@@ -1,7 +1,6 @@
-use crate::avl_tree::{self, AvlNode};
+use crate::avl_tree::AvlNode;
 use crate::red_black_tree::RedBlackNode;
 use std::cell::RefCell;
-use std::collections::VecDeque;
 use std::rc::Rc;
 
 /*Lets try not to change this file too much unless a method is being implemebted
@@ -40,25 +39,24 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
     }
     pub fn binary_tree_find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         if key == self.key {
-            return self.root.clone()
+            return self.root.clone();
         } else if key < self.key {
             if let Some(ref left_child) = self.left_child {
-                return left_child.borrow().binary_tree_find(key)
+                return left_child.borrow().binary_tree_find(key);
             } else {
-                return None
+                return None;
             }
         } else if key > self.key {
             if let Some(ref right_child) = self.right_child {
-                return right_child.borrow().binary_tree_find(key)
+                return right_child.borrow().binary_tree_find(key);
             } else {
-                return None
+                return None;
             }
         } else {
-            return None
+            return None;
         }
-        
     }
-    
+
     pub fn binary_tree_insert(&mut self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         let rc_current_node = self.root.clone().unwrap();
         // DONT NEED TO INSERT IF KEY PRESENT
@@ -345,61 +343,38 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
     }
 
     pub fn print_tree(&self) {
-        // let indent: usize = (self.height * 8).try_into().unwrap();
-        // print root
-        println!("{}", self.key);
-        // root's children
-        let mut node_queue = self.get_children();
-        for i in 0..self.height {
-            // get children of children
-            let mut next_queue = VecDeque::new();
-            // print current children and get next children
-            for node in &node_queue {
-                print!("{} ", node.borrow().key);
-                let children = node.borrow().get_children();
-                for child in children {
-                    next_queue.push_back(child);
+        let h = self.height + 1;
+        let col = get_cols(h);
+        let mut M: Vec<Vec<Option<T>>> = vec![vec![None; col as usize]; h as usize];
+        self.print_helper(&mut M, col / 2, 0, h);
+        for i in 0..h {
+            for j in 0..col {
+                if M[i as usize][j as usize].is_some() {
+                    print!("{:?}", M[i as usize][j as usize].as_ref().unwrap());
+                } else {
+                    print!(" ");
                 }
             }
-            node_queue = next_queue;
             println!();
         }
     }
 
-    fn get_children(&self) -> VecDeque<Rc<RefCell<TreeNode<T>>>> {
-        let mut node_queue = VecDeque::new();
-        // let mut print_queue = VecDeque::new();
-        if let Some(lc_node) = &self.left_child {
-            node_queue.push_back(lc_node.clone());
+    fn print_helper(&self, M: &mut Vec<Vec<Option<T>>>, col: u32, row: u32, h: u32) {
+        M[row as usize][col as usize] = Some(self.key.clone());
+        if let Some(lc) = &self.left_child {
+            lc.borrow()
+                .print_helper(M, col - 2_u32.pow(h - 2), row + 1, h - 1);
         }
-        if let Some(rc_node) = &self.right_child {
-            node_queue.push_back(rc_node.clone());
+        if let Some(rc) = &self.right_child {
+            rc.borrow()
+                .print_helper(M, col + 2_u32.pow(h - 2), row + 1, h - 1);
         }
-        node_queue
     }
+}
 
-    // fn print_recursive(&self, depth: usize) {
-    //     let indent = 12;
-    //     if let Some(lc_node) = &self.left_child {
-    //         let left_indent = indent - 4;
-    //         print!(
-    //             "{:indent$}{}",
-    //             "",
-    //             lc_node.borrow().key,
-    //             indent = left_indent
-    //         );
-    //         lc_node.borrow().print_recursive(left_indent);
-    //     }
-    //     if let Some(rc_node) = &self.right_child {
-    //         let right_indent = indent + 4;
-    //         print!(
-    //             "{:indent$}{}",
-    //             "",
-    //             rc_node.borrow().key,
-    //             indent = right_indent
-    //         );
-    //         rc_node.borrow().print_recursive(right_indent);
-    //     }
-    //     println!();
-    // }
+fn get_cols(h: u32) -> u32 {
+    if h == 1 {
+        return 1;
+    }
+    return get_cols(h - 1) + get_cols(h - 1) + 1;
 }
