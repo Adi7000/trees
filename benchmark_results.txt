@@ -1,0 +1,150 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+RB Tree: Insert/RB Tree: Insert 10000 elements
+                        time:   [2.9799 ms 3.0193 ms 3.0727 ms]
+                        change: [+0.0532% +1.3725% +3.1784%] (p = 0.07 > 0.05)
+                        No change in performance detected.
+Found 7 outliers among 100 measurements (7.00%)
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+RB Tree: Insert/RB Tree: Insert 40000 elements
+                        time:   [14.099 ms 14.129 ms 14.166 ms]
+                        change: [-0.1673% +0.2106% +0.5694%] (p = 0.28 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+RB Tree: Insert/RB Tree: Insert 70000 elements
+                        time:   [26.021 ms 26.087 ms 26.161 ms]
+                        change: [-0.4085% +0.1610% +0.6739%] (p = 0.58 > 0.05)
+                        No change in performance detected.
+Found 7 outliers among 100 measurements (7.00%)
+  1 (1.00%) high mild
+  6 (6.00%) high severe
+RB Tree: Insert/RB Tree: Insert 100000 elements
+                        time:   [38.343 ms 38.416 ms 38.498 ms]
+                        change: [-0.0022% +0.2670% +0.5382%] (p = 0.05 < 0.05)
+                        Change within noise threshold.
+Found 8 outliers among 100 measurements (8.00%)
+  3 (3.00%) high mild
+  5 (5.00%) high severe
+RB Tree: Insert/RB Tree: Insert 130000 elements
+                        time:   [51.066 ms 51.184 ms 51.317 ms]
+                        change: [-0.2063% +0.2019% +0.6085%] (p = 0.32 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  2 (2.00%) high mild
+  4 (4.00%) high severe
+
+RB Tree: Search/RB Tree: Search 1000 lowest values
+                        time:   [28.379 µs 28.674 µs 29.012 µs]
+                        change: [-2.3372% -1.1024% +0.1384%] (p = 0.09 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+RB Tree: Search/RB Tree: Search 4000 lowest values
+                        time:   [168.59 µs 168.91 µs 169.23 µs]
+                        change: [+0.4716% +0.7753% +1.0710%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 5 outliers among 100 measurements (5.00%)
+  5 (5.00%) high mild
+RB Tree: Search/RB Tree: Search 7000 lowest values
+                        time:   [318.32 µs 318.60 µs 318.99 µs]
+                        change: [-0.5521% -0.2495% +0.0267%] (p = 0.10 > 0.05)
+                        No change in performance detected.
+Found 11 outliers among 100 measurements (11.00%)
+  2 (2.00%) high mild
+  9 (9.00%) high severe
+RB Tree: Search/RB Tree: Search 10000 lowest values
+                        time:   [468.54 µs 469.63 µs 471.02 µs]
+                        change: [-0.9826% -0.6417% -0.3349%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) high mild
+  3 (3.00%) high severe
+RB Tree: Search/RB Tree: Search 13000 lowest values
+                        time:   [605.80 µs 606.42 µs 607.15 µs]
+                        change: [-0.8113% -0.5642% -0.3379%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 13 outliers among 100 measurements (13.00%)
+  1 (1.00%) high mild
+  12 (12.00%) high severe
+
+AVL Tree: Insert/AVL Tree: Insert 10000 elements
+                        time:   [1.5748 ms 1.5828 ms 1.5919 ms]
+                        change: [-0.6545% +0.0314% +0.6974%] (p = 0.92 > 0.05)
+                        No change in performance detected.
+Found 5 outliers among 100 measurements (5.00%)
+  3 (3.00%) high mild
+  2 (2.00%) high severe
+AVL Tree: Insert/AVL Tree: Insert 40000 elements
+                        time:   [6.9837 ms 7.0320 ms 7.0888 ms]
+                        change: [-6.1410% -2.2990% +0.3400%] (p = 0.22 > 0.05)
+                        No change in performance detected.
+Found 7 outliers among 100 measurements (7.00%)
+  6 (6.00%) high mild
+  1 (1.00%) high severe
+AVL Tree: Insert/AVL Tree: Insert 70000 elements
+                        time:   [12.788 ms 12.870 ms 12.963 ms]
+                        change: [-0.5979% +0.4481% +1.4650%] (p = 0.39 > 0.05)
+                        No change in performance detected.
+Found 10 outliers among 100 measurements (10.00%)
+  8 (8.00%) high mild
+  2 (2.00%) high severe
+AVL Tree: Insert/AVL Tree: Insert 100000 elements
+                        time:   [18.737 ms 18.828 ms 18.925 ms]
+                        change: [-1.6380% -0.5312% +0.5100%] (p = 0.35 > 0.05)
+                        No change in performance detected.
+Found 7 outliers among 100 measurements (7.00%)
+  7 (7.00%) high mild
+AVL Tree: Insert/AVL Tree: Insert 130000 elements
+                        time:   [24.576 ms 24.672 ms 24.774 ms]
+                        change: [-0.6905% -0.1277% +0.4403%] (p = 0.68 > 0.05)
+                        No change in performance detected.
+Found 5 outliers among 100 measurements (5.00%)
+  5 (5.00%) high mild
+
+AVL Tree: Search/AVL Tree: Search 1000 lowest values
+                        time:   [29.829 µs 29.903 µs 29.979 µs]
+                        change: [-4.6422% -3.5317% -2.3872%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 10 outliers among 100 measurements (10.00%)
+  5 (5.00%) high mild
+  5 (5.00%) high severe
+AVL Tree: Search/AVL Tree: Search 4000 lowest values
+                        time:   [181.55 µs 181.78 µs 182.06 µs]
+                        change: [-0.5406% -0.1940% +0.1187%] (p = 0.26 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+AVL Tree: Search/AVL Tree: Search 7000 lowest values
+                        time:   [340.90 µs 341.38 µs 341.83 µs]
+                        change: [-0.6245% -0.4329% -0.2498%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 13 outliers among 100 measurements (13.00%)
+  11 (11.00%) low mild
+  2 (2.00%) high mild
+AVL Tree: Search/AVL Tree: Search 10000 lowest values
+                        time:   [497.73 µs 498.01 µs 498.40 µs]
+                        change: [-1.0425% -0.4727% -0.0160%] (p = 0.08 > 0.05)
+                        No change in performance detected.
+Found 12 outliers among 100 measurements (12.00%)
+  1 (1.00%) high mild
+  11 (11.00%) high severe
+AVL Tree: Search/AVL Tree: Search 13000 lowest values
+                        time:   [644.13 µs 644.86 µs 645.84 µs]
+                        change: [-0.6282% -0.4325% -0.2183%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 11 outliers among 100 measurements (11.00%)
+  1 (1.00%) low mild
+  6 (6.00%) high mild
+  4 (4.00%) high severe
+
