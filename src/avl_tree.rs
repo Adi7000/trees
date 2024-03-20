@@ -2,13 +2,11 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::tree::*;
 
-
-#[derive(Debug,Clone, Copy)]
-pub struct AvlNode {
-}
+#[derive(Debug, Clone, Copy)]
+pub struct AvlNode {}
 
 pub struct AvlTree<T> {
-    root: Option<Rc<RefCell<TreeNode<T>>>>
+    root: Option<Rc<RefCell<TreeNode<T>>>>,
 }
 
 impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
@@ -21,7 +19,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
             let new_node = root.borrow_mut().binary_tree_insert(key.clone());
             new_node
         } else {
-            let rc_node = TreeNode::new(Node::Avl(AvlNode{}), key.clone());
+            let rc_node = TreeNode::new(Node::Avl(AvlNode {}), key.clone());
             self.root = Some(rc_node.clone());
             Some(rc_node)
         };
@@ -30,17 +28,24 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
         let mut current_node = new_node.clone();
         while let Some(ref rc_node) = current_node.clone() {
             let balance_factor: i64 = get_balance_factor(&rc_node.borrow()); //.clone()?
-            //println!("{}:{}:{}", balance_factor, node.key, key);
-            if balance_factor > 1 && key < rc_node.borrow().left_child.clone().unwrap().borrow().key {
+                                                                             //println!("{}:{}:{}", balance_factor, node.key, key);
+            if balance_factor > 1 && key < rc_node.borrow().left_child.clone().unwrap().borrow().key
+            {
                 self.set_root_after_rotate(rc_node.borrow_mut().right_rotate());
-            } else if balance_factor < -1 && key > rc_node.borrow().right_child.clone().unwrap().borrow().key {
+            } else if balance_factor < -1
+                && key > rc_node.borrow().right_child.clone().unwrap().borrow().key
+            {
                 //println!("1");
                 self.set_root_after_rotate(rc_node.borrow_mut().left_rotate());
-            } else if balance_factor > 1 && key > rc_node.borrow().left_child.clone().unwrap().borrow().key {
+            } else if balance_factor > 1
+                && key > rc_node.borrow().left_child.clone().unwrap().borrow().key
+            {
                 let rc_left_child = rc_node.borrow().left_child.clone().unwrap();
                 self.set_root_after_rotate(rc_left_child.borrow_mut().left_rotate());
                 self.set_root_after_rotate(rc_node.borrow_mut().right_rotate());
-            } else if balance_factor < -1 && key < rc_node.borrow().right_child.clone().unwrap().borrow().key {
+            } else if balance_factor < -1
+                && key < rc_node.borrow().right_child.clone().unwrap().borrow().key
+            {
                 let rc_right_child = rc_node.borrow().right_child.clone().unwrap();
                 self.set_root_after_rotate(rc_right_child.borrow_mut().right_rotate());
                 self.set_root_after_rotate(rc_node.borrow_mut().left_rotate());
@@ -50,7 +55,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
 
             //update current node
             current_node = rc_node.borrow().parent.clone();
-        };
+        }
 
         new_node
     }
@@ -72,7 +77,6 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
             None => {}
         }
     }
-
 
     pub fn print_tree(&mut self) {
         let root = self.root.take();

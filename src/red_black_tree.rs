@@ -55,17 +55,6 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
     }
 
-    pub fn print_preorder(&mut self) {
-        let root = self.root.take();
-        match root {
-            Some(node) => {
-                self.root = Some(node.clone());
-                node.borrow_mut().print_pre_order_traverse();
-            }
-            None => {}
-        }
-    }
-
 
     pub fn print_tree(&mut self) {
         let root = self.root.take();

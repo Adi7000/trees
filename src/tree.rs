@@ -13,14 +13,6 @@ pub enum Node {
     RedBlack(RedBlackNode),
 }
 
-// pub struct TreeNode<T> {
-//     pub key: T,
-//     pub parent: Option<Rc<RefCell<TreeNode<T>>>>,
-//     left: Option<Rc<RefCell<TreeNode<T>>>>,
-//     right: Option<Rc<RefCell<TreeNode<T>>>>,
-//     kind: Node,
-// }
-
 #[derive(Debug, Clone)]
 pub struct TreeNode<T> {
     pub key: T,
@@ -103,11 +95,11 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
             }
         };
 
-
         inserted_node
     }
     /** fixes the height feild of a node and all its ancestors
-     *
+     * Please use fix_height() if ancestor fixes are not desired as they take
+     * O(logN) time
      */
     fn fix_height_up(&mut self, borrowed_childs_height: Option<(u32, Rc<RefCell<TreeNode<T>>>)>) {
         //Fix current node
@@ -150,11 +142,10 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
                 .fix_height_up(Some((self.height, self.root.clone().unwrap())));
         }
     }
-     /** fixes the height of a node and its parent (parent must exist)
+    /** fixes the height of a node and its parent (parent must exist)
      *
      */
     fn fix_height_self_and_parent(&mut self) {
-
         //fix current node
         self.fix_height();
 
@@ -185,12 +176,9 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
             l_height += 1;
         }
         parent_node.height = std::cmp::max::<u32>(l_height, r_height);
-
-        
     }
     /** fixes height of current node by reading children */
     pub fn fix_height(&mut self) {
-
         //fix current node
         let mut r_height: u32 = 0;
         let mut l_height: u32 = 0;
@@ -201,7 +189,6 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
             l_height = l_node.borrow().height + 1;
         }
         self.height = std::cmp::max::<u32>(l_height, r_height);
-
     }
     /**
      * returns the new root node of the tree if the root node is changed while rotating
@@ -395,10 +382,3 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
     //     println!();
     // }
 }
-
-// impl<T> TreeNode<T> {
-//     pub fn binary_tree_insert(self, data:T) {
-//     }
-//     pub fn rotate_nodes(self) {
-//     }
-// }
