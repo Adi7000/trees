@@ -132,7 +132,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                                 }
                             }
 
-                            rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
+                            rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});                            
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
                             let rotation: Option<Rc<RefCell<TreeNode<T>>>> = rc_grandparent.borrow_mut().right_rotate();
                             if rotation.is_some() {
@@ -143,6 +143,9 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                             rc_grandparent.borrow().right_child.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
+
+                            rc_node.borrow_mut().fix_height();
+                            rc_parent.borrow_mut().fix_height();
 
                             rcnode = Rc::clone(&rc_grandparent);
                             continue;
@@ -173,6 +176,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
 
                             rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
+
                             let rotation: Option<Rc<RefCell<TreeNode<T>>>> = rc_grandparent.borrow_mut().left_rotate();
                             if rotation.is_some() {
                                 self.root = rotation;
@@ -182,19 +186,27 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                             rc_grandparent.borrow().left_child.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
                             rc_grandparent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Red});
+
+                            rc_node.borrow_mut().fix_height();
+                            rc_parent.borrow_mut().fix_height();
+
                             rcnode = Rc::clone(&rc_grandparent);
                             continue;
                         }
                     }
                 }
             }
-            else{
-                rc_parent.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
-            }
+        }
+
+        // THE ITERATOR MAY NOT HAVE REACHED ROOT YET
+        // FIX HEIGHT UP TILL ROOT
+        rcnode.borrow_mut().fix_height();
+        while rcnode.borrow().parent.is_some() {
+            rcnode.borrow().parent.as_ref().unwrap().borrow_mut().fix_height();
+            rc_node = rcnode.borrow().parent
         }
         self.root.as_ref().unwrap().borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
     }
-
 }
 
 
