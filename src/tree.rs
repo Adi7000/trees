@@ -1,5 +1,5 @@
 use crate::avl_tree::AvlNode;
-use crate::red_black_tree::RedBlackNode;
+use crate::red_black_tree::{NodeColor, RedBlackNode};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -345,22 +345,42 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
     pub fn print_tree(&self) {
         let h = self.height + 1;
         let col = get_cols(h);
-        let mut M: Vec<Vec<Option<T>>> = vec![vec![None; col as usize]; h as usize];
+        let is_red_black = match self.kind {
+            Node::Avl(_) => false,
+            Node::RedBlack(_) => true,
+        };
+        let mut M: Vec<Vec<Option<TreeNode<T>>>> = vec![vec![None; col as usize]; h as usize];
         self.print_helper(&mut M, col / 2, 0, h);
+
         for i in 0..h {
             for j in 0..col {
                 if M[i as usize][j as usize].is_some() {
-                    print!("{:?}", M[i as usize][j as usize].as_ref().unwrap());
+                    let node = M[i as usize][j as usize].as_ref().unwrap();
+                    if is_red_black {
+                        if let Node::RedBlack(rb_node) = node.kind {
+                            if rb_node.color == NodeColor::Red {
+                                print!("{:?}R", node.key);
+                            } else {
+                                print!("{:?}B", node.key);
+                            }
+                        }
+                    } else {
+                        print!("{:?}", node.key)
+                    }
                 } else {
-                    print!(" ");
+                    if is_red_black {
+                        print!("   ");
+                    } else {
+                        print!(" ");
+                    }
                 }
             }
             println!();
         }
     }
 
-    fn print_helper(&self, M: &mut Vec<Vec<Option<T>>>, col: u32, row: u32, h: u32) {
-        M[row as usize][col as usize] = Some(self.key.clone());
+    fn print_helper(&self, M: &mut Vec<Vec<Option<TreeNode<T>>>>, col: u32, row: u32, h: u32) {
+        M[row as usize][col as usize] = Some(self.clone());
         if let Some(lc) = &self.left_child {
             lc.borrow()
                 .print_helper(M, col - 2_u32.pow(h - 2), row + 1, h - 1);
