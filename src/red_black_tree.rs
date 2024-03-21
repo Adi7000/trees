@@ -49,6 +49,10 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         if self.root.is_none(){
             return;
         }
+
+        if self.root.as_ref().unwrap().borrow().binary_tree_find(key.clone()).is_none(){
+            return;
+        }
         // VARIABLE TO HOLD NODE TO BE DELETED
         let delete_node_rc: Rc<RefCell<TreeNode<T>>> =  Rc::clone(& self.root.as_ref().unwrap().borrow().binary_tree_find(key).as_ref().unwrap());
 
@@ -56,15 +60,27 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         if let tree::Node::RedBlack(rbt) = delete_node_rc.borrow().kind {
             delete_node_color = rbt.color.clone();
         }
+        println!("deleting node: {:#?}", delete_node_rc.borrow().key);
+        if delete_node_rc.borrow().parent.is_none(){
+            println!("deleting node parent is NONEE");
+
+        }
+
+        
 
         let mut x: Option<Rc<RefCell<TreeNode<T>>>>;
         if delete_node_rc.borrow().right_child.is_none() {
             x = delete_node_rc.borrow().left_child.clone();
             self.root = self.transplant(&delete_node_rc.borrow().root, &x);
+            if self.root.is_none(){
+                println!("I AM HEREEE deleting node: {:#?}", delete_node_rc.borrow().key);
+                println!("I AM HEREE root is NONE");
+            }
         }
         else if delete_node_rc.borrow().left_child.clone().is_none() {
             x = delete_node_rc.borrow().right_child.clone();
             self.root = self.transplant(&delete_node_rc.borrow().root, &x);
+            println!("I AM HEREEE deleting node X = : {:#?}", x.as_ref().unwrap().borrow().key);
         }
         else {
             // FIND MINIMUM RIGHT SUB TREE
@@ -77,6 +93,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             }
             println!("in order min actual before transplant {:#?}", in_order_min.as_ref().unwrap().borrow().key);
 
+            //GOOD TILL HEREEE
             if let tree::Node::RedBlack(rbt) = in_order_min.as_ref().unwrap().borrow().kind {
                 delete_node_color = rbt.color.clone();
             }
@@ -95,6 +112,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                 in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = in_order_min.clone();
             }
 
+            // HERREREJNEHJBNREIHJBNRIEJNBFIJNEIJNEIJNI
             // in_order_min.as_ref().unwrap().borrow_mut().right_child = delete_node_rc.borrow().right_child.clone();
             // in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
             self.root = self.transplant(&delete_node_rc.borrow().root, &in_order_min);
@@ -110,12 +128,23 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             in_order_min.as_ref().unwrap().borrow().left_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
             in_order_min.as_ref().unwrap().borrow_mut().kind = delete_node_rc.borrow().kind.clone();
             self.root.as_ref().unwrap().borrow_mut().fix_height();
+            in_order_min.as_ref().unwrap().borrow_mut().fix_height();
+
+            // if self.root.isnone(){
+            //     println!("deleting node: {:#?}", delete_node_rc.borrow().key);
+            //     println!("deleting node: {:#?}", delete_node_rc.borrow().key);
+            // }
+            // println!("deleting node: {:#?}", delete_node_rc.borrow().key);
         }
 
 
         match delete_node_color {
             NodeColor::Black => {
                 println!("NEED DELETE FIXUP");
+                if self.root.is_none(){
+                    println!("deleting node: {:#?}", delete_node_rc.borrow().key);
+                    println!("root is NONE");
+                }
                 // println!("THIS NODE IS BEING DELETED {:#?}", x.as_ref().unwrap().borrow().key);
                 self.fix_delete(& x);
             }
@@ -149,6 +178,8 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
         if v.is_some(){
             v.as_ref().unwrap().borrow_mut().parent = rcnode.borrow().parent.clone();
+            println!("in transplant v {:#?}", v.as_ref().unwrap().borrow().key);
+            println!("in transplant v parent{:#?}", v.as_ref().unwrap().borrow().parent.as_ref().unwrap().borrow().key);
         }
        
         return self.root.clone();
@@ -232,11 +263,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
 
         let mut rcnode = Rc::clone(& rb_tree.as_ref().unwrap());
+        println!("node in fixup{:#?} parent in fixup{:#?}", rcnode.borrow().key, rcnode.borrow().parent.as_ref().unwrap().borrow().key);
 
         while self.am_i_black(&rcnode) && rcnode.borrow().parent.is_some(){
 
             // FINDOUT WHICH CHILD AM I
             let rc_parent: Rc<RefCell<tree::TreeNode<T>>> = Rc::clone(& rcnode.borrow().parent.as_ref().unwrap());
+            println!("node in fixup{:#?} parent in fixup{:#?}", rcnode.borrow().key, rc_parent.borrow().key);
 
             let mut is_me_left = false;
 
@@ -302,7 +335,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             }
             else {
 
-                // SIBLING IS RIGHT CHILD
+                // SIBLING IS LEFT CHILD
                 let mut rc_sibling: Rc<RefCell<tree::TreeNode<T>>> = Rc::clone(& rc_parent.borrow().left_child.as_ref().unwrap());
                 
 
@@ -359,7 +392,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
 
         rcnode.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
-        rcnode.borrow_mut().parent = None;
+        // rcnode.borrow_mut().parent = None;
         println!("IN FIX DELETE {:#?}", self.root.as_ref().unwrap().borrow().key);
         // self.root = Some(Rc::clone(&rcnode));
     }
