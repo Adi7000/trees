@@ -37,6 +37,26 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> TreeNode<T> {
         ptr_node.borrow_mut().root = Some(ptr_node.clone());
         ptr_node
     }
+    pub fn numbers_of_leaves(&self) -> u32 {
+        //leaf node
+        if self.left_child.is_none() && self.right_child.is_none() {
+            return 1
+        } 
+
+        let left_leaves = if let Some(ref rc_l_child) = self.left_child.clone() {
+            rc_l_child.borrow().numbers_of_leaves()
+        } else {
+            0
+        };
+
+        let right_leaves = if let Some(ref rc_r_child) = self.right_child.clone() {
+            rc_r_child.borrow().numbers_of_leaves()
+        } else {
+            0
+        };
+        
+        left_leaves+right_leaves
+    }
     pub fn binary_tree_find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         if key == self.key {
             return self.root.clone();
