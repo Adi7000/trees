@@ -19,7 +19,7 @@ pub enum NodeColor {
     Black,
 }
 
-impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
+impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display + std::ops::Add<Output = T>> RedBlackTree<T> {
     pub fn new() -> Self {
         RedBlackTree { root: None }
     }
@@ -248,7 +248,6 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         rb_parent: & Option<Rc<RefCell<tree::TreeNode<T>>>>, 
         xkey: T
     ){
-        self.root.as_ref().unwrap().borrow().print_tree();
 
         // HANDLING CASE WHEN PARENT IS RED
         if rb_tree.is_none() && rb_parent.is_some(){
