@@ -20,6 +20,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
             false
         }
     }
+    pub fn get_number_of_leaves(&self) -> u32 {
+        if self.is_empty() {
+            return 0
+        }
+        self.root.clone().unwrap().borrow().numbers_of_leaves()
+        
+    }
     pub fn delete(&mut self, key:T) {
         // Case 2 leaf node with parent
         fn handle_case_2<T: PartialOrd + std::fmt::Debug>(node: &mut TreeNode<T>, borrowed_node: Option<&mut TreeNode<T>>) {

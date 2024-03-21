@@ -30,6 +30,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             false
         }
     }
+    pub fn get_number_of_leaves(&self) -> u32 {
+        if self.is_empty() {
+            return 0
+        }
+        self.root.clone().unwrap().borrow().numbers_of_leaves()
+        
+    }
     pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<tree::TreeNode<T>>>> {
         if let Some(root) = &self.root {
             let new_node = root.borrow_mut().binary_tree_insert(key);
