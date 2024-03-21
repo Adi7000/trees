@@ -26,4 +26,15 @@
 
 ## User Manual
 
+Example of Functionality
+
+1. Start the program with `cargo run example`
+2. Watch the preloaded example do some common operations
+
+Manual Input Through CLI
+
+1. Start the program with `cargo run manual`
+2. Follow the prompts to use either AVL or Red-Black tree
+3. Follow the prompts to insert nodes, delete nodes, or print the tree
+
 ## Marketing Video
