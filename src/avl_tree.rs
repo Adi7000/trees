@@ -85,7 +85,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
                 }
         }
         // Case 4 node with two children and maybe a parent
-        fn handle_case_4<T: PartialOrd + std::fmt::Debug>(mut node: &mut TreeNode<T>) -> Option<Rc<RefCell<TreeNode<T>>>> {
+        fn handle_case_4<T: PartialOrd + std::fmt::Debug>(mut node: &mut TreeNode<T>) -> (Option<Rc<RefCell<TreeNode<T>>>>, Rc<RefCell<TreeNode<T>>>) {
             fn find_next_node<T>(node: &TreeNode<T>) -> Rc<RefCell<TreeNode<T>>>{
                 if let Some(ref rc_l_child) = node.left_child.clone() {
                     return find_next_node(&rc_l_child.borrow())
@@ -98,6 +98,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
             
             // Disjoin the successor node (creates simpler case 2 or 3)
             let mut successor = rc_successor.borrow_mut();
+            let rebalance_start_node = successor.parent.clone().unwrap();
             // Case 2 leaf node with parent
             if successor.left_child.is_none() && successor.right_child.is_none() {
                 handle_case_2(&mut successor, Some(&mut node));
@@ -115,30 +116,59 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
             successor.left_child = node.left_child.take();
             successor.right_child = node.right_child.take();
 
-            new_root
+            (new_root, rebalance_start_node)
         }
         
-        let node_to_delete = self.find(key);
+        let node_to_delete = self.find(key.clone());
+        let mut rebalance_start_node: Option<Rc<RefCell<TreeNode<_>>>> = None;
         // Ensure tree is not empty (Case 0)
         if let Some(ref rc_node) = node_to_delete {
             let mut node = rc_node.borrow_mut();
             // Case 1 only one node in tree
             if node.left_child.is_none() && node.right_child.is_none() && node.parent.is_none(){
                 self.root = None;
+                //No rebalance needed
+                rebalance_start_node = None;
             // Case 2 leaf node with parent
             } else if node.left_child.is_none() && node.right_child.is_none() {
+                rebalance_start_node = node.parent.clone();
                 handle_case_2(&mut node, None);
             // Case 3 node with one child and maybe a parent
             } else if node.left_child.is_none() || node.right_child.is_none() {
+                rebalance_start_node = node.parent.clone();
                 self.set_root_after_rotate(handle_case_3(&mut node, None));
             // Case 4 node with two children and maybe a parent
             } else if node.left_child.is_some() && node.right_child.is_some() {
-                self.set_root_after_rotate(handle_case_4(&mut node));
+                let (new_root, rebalance_node) = handle_case_4(&mut node);
+                self.set_root_after_rotate(new_root);
+                rebalance_start_node = Some(rebalance_node);
             }
             node.root = None; //This action will reduce the reference count to 0 for the deleted node and trigger the object to be deleted
         };
         
-        // TODO Rebalance the tree and fix heights
+        //Re-Balance the tree starting at the deleted node and then going up to all ancestors
+        let mut current_node: Option<Rc<RefCell<TreeNode<_>>>> = rebalance_start_node.clone();
+        while let Some(ref rc_node) = current_node.clone() {
+            let balance_factor: i64 = get_balance_factor(&rc_node.borrow());
+            if balance_factor > 1 && get_balance_factor(&rc_node.borrow().left_child.clone().unwrap().borrow()) >=0 {
+                self.set_root_after_rotate(rc_node.borrow_mut().right_rotate());
+            } else if balance_factor < -1 && get_balance_factor(&rc_node.borrow().right_child.clone().unwrap().borrow()) <=0 {
+                self.set_root_after_rotate(rc_node.borrow_mut().left_rotate());
+            } else if balance_factor > 1 && get_balance_factor(&rc_node.borrow().left_child.clone().unwrap().borrow()) < 0 {
+                let rc_left_child = rc_node.borrow().left_child.clone().unwrap();
+                self.set_root_after_rotate(rc_left_child.borrow_mut().left_rotate());
+                self.set_root_after_rotate(rc_node.borrow_mut().right_rotate());
+            } else if balance_factor < -1 && get_balance_factor(&rc_node.borrow().right_child.clone().unwrap().borrow()) > 0 {
+                let rc_right_child = rc_node.borrow().right_child.clone().unwrap();
+                self.set_root_after_rotate(rc_right_child.borrow_mut().right_rotate());
+                self.set_root_after_rotate(rc_node.borrow_mut().left_rotate());
+            } else {
+                rc_node.borrow_mut().fix_height();
+            }
+
+            //update current node
+            current_node = rc_node.borrow().parent.clone();
+        }
 
     }
     pub fn find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
@@ -160,7 +190,7 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
         };
 
         //Re-Balance the tree starting at new node and then going up to all ancestors
-        let mut current_node = new_node.clone();
+        let mut current_node: Option<Rc<RefCell<TreeNode<_>>>> = new_node.clone();
         while let Some(ref rc_node) = current_node.clone() {
             let balance_factor: i64 = get_balance_factor(&rc_node.borrow()); //.clone()?
                                                                              //println!("{}:{}:{}", balance_factor, node.key, key);
