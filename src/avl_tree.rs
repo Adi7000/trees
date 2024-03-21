@@ -13,6 +13,134 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
     pub fn new() -> Self {
         AvlTree { root: None }
     }
+    pub fn delete(&mut self, key:T) {
+        // Case 2 leaf node with parent
+        fn handle_case_2<T: PartialOrd + std::fmt::Debug>(node: &mut TreeNode<T>, borrowed_node: Option<&mut TreeNode<T>>) {
+            let rc_parent = node.parent.take().unwrap();
+            //Handles situation where parent is already borrowed so upper node is passed from outside
+            if let Some(upper_node) = borrowed_node {
+                if Rc::ptr_eq(&upper_node.root.clone().unwrap(), &rc_parent) {
+                    //node is parent's left child
+                    if node.key < upper_node.key {
+                        upper_node.left_child = None;
+                    //node is parent's right child
+                    } else if node.key > upper_node.key {
+                        upper_node.right_child = None;
+                    }
+                    return
+                }
+            }
+            let mut parent = rc_parent.borrow_mut();
+            //node is parent's left child
+            if node.key < parent.key {
+                parent.left_child = None;
+            //node is parent's right child
+            } else if node.key > parent.key {
+                parent.right_child = None;
+            }
+        }
+        // Case 3 node with one child and maybe a parent
+        fn handle_case_3<T: PartialOrd>(node: &mut TreeNode<T>, borrowed_node: Option<&mut TreeNode<T>>) -> Option<Rc<RefCell<TreeNode<T>>>>{
+            let rc_child = node.left_child.take().unwrap_or_else(|| node.right_child.take().unwrap());
+            let mut child  = rc_child.borrow_mut();
+            
+            //Handles situation where parent is already borrowed so upper node is passed from outside
+            if let Some(upper_node) = borrowed_node {
+                let rc_parent = node.parent.take().unwrap();
+                if Rc::ptr_eq(&upper_node.root.clone().unwrap(), &rc_parent) {
+                    //node is parent's left child
+                    if node.key < upper_node.key {
+                        upper_node.left_child = child.root.clone();
+                        child.parent = upper_node.root.clone();
+                    //node is parent's right child
+                    } else if node.key > upper_node.key {
+                        upper_node.right_child = child.root.clone();
+                        child.parent = upper_node.root.clone();
+                    }
+                    node.parent = None;
+            
+
+                    return None
+                }
+            }
+
+                //parent exists
+                if let Some(rc_parent) = node.parent.take() {
+                    let mut parent = rc_parent.borrow_mut();
+                    //node is parent's left child
+                    if node.key < parent.key {
+                        parent.left_child = child.root.clone();
+                        child.parent = parent.root.clone();
+                    //node is parent's right child
+                    } else if node.key > parent.key {
+                        parent.right_child = child.root.clone();
+                        child.parent = parent.root.clone();
+                    }
+                    node.parent = None;
+                    return None
+                //parent doesn't exist 
+                } else {
+                    child.parent = None;
+                    return child.root.clone()
+                }
+        }
+        // Case 4 node with two children and maybe a parent
+        fn handle_case_4<T: PartialOrd + std::fmt::Debug>(mut node: &mut TreeNode<T>) -> Option<Rc<RefCell<TreeNode<T>>>> {
+            fn find_next_node<T>(node: &TreeNode<T>) -> Rc<RefCell<TreeNode<T>>>{
+                if let Some(ref rc_l_child) = node.left_child.clone() {
+                    return find_next_node(&rc_l_child.borrow())
+                } else {
+                    return node.root.clone().unwrap()
+                }
+            }
+            //Find in order successor
+            let rc_successor = find_next_node(&node.right_child.clone().unwrap().borrow());
+            
+            // Disjoin the successor node (creates simpler case 2 or 3)
+            let mut successor = rc_successor.borrow_mut();
+            // Case 2 leaf node with parent
+            if successor.left_child.is_none() && successor.right_child.is_none() {
+                handle_case_2(&mut successor, Some(&mut node));
+            // Case 3 node with one child and maybe a parent (parent guaranteed here)
+            } else if successor.left_child.is_none() || successor.right_child.is_none() {
+                handle_case_3(&mut successor, Some(&mut node));
+            }
+
+            // Use disjoint successor node to replace target delete node in tree
+            let mut new_root:Option<Rc<RefCell<TreeNode<T>>>> = None;
+            if node.parent.is_none() {
+                new_root = successor.root.clone();
+            };
+            successor.parent = node.parent.take();
+            successor.left_child = node.left_child.take();
+            successor.right_child = node.right_child.take();
+
+            new_root
+        }
+        
+        let node_to_delete = self.find(key);
+        // Ensure tree is not empty (Case 0)
+        if let Some(ref rc_node) = node_to_delete {
+            let mut node = rc_node.borrow_mut();
+            // Case 1 only one node in tree
+            if node.left_child.is_none() && node.right_child.is_none() && node.parent.is_none(){
+                self.root = None;
+            // Case 2 leaf node with parent
+            } else if node.left_child.is_none() && node.right_child.is_none() {
+                handle_case_2(&mut node, None);
+            // Case 3 node with one child and maybe a parent
+            } else if node.left_child.is_none() || node.right_child.is_none() {
+                self.set_root_after_rotate(handle_case_3(&mut node, None));
+            // Case 4 node with two children and maybe a parent
+            } else if node.left_child.is_some() && node.right_child.is_some() {
+                self.set_root_after_rotate(handle_case_4(&mut node));
+            }
+            node.root = None; //This action will reduce the reference count to 0 for the deleted node and trigger the object to be deleted
+        };
+        
+        // TODO Rebalance the tree and fix heights
+
+    }
     pub fn find(&self, key: T) -> Option<Rc<RefCell<TreeNode<T>>>> {
         if let Some(ref root) = self.root {
             return root.borrow().binary_tree_find(key)
