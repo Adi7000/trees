@@ -5,7 +5,7 @@ use std::{env, io};
 
 fn run_example() {
     let mut avl = avl_tree::AvlTree::new();
-    println!("---Inserting 1-15 into AVL tree---");
+    println!("---Inserting 1-14 into AVL tree---");
     for i in 1..15 {
         avl.insert(i);
     }
