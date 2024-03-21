@@ -84,41 +84,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
                     return child.root.clone()
                 }
         }
-        // Case 4 node with two children and maybe a parent
-        fn handle_case_4<T: PartialOrd + std::fmt::Debug>(mut node: &mut TreeNode<T>) -> (Option<Rc<RefCell<TreeNode<T>>>>, Rc<RefCell<TreeNode<T>>>) {
-            fn find_next_node<T>(node: &TreeNode<T>) -> Rc<RefCell<TreeNode<T>>>{
-                if let Some(ref rc_l_child) = node.left_child.clone() {
-                    return find_next_node(&rc_l_child.borrow())
-                } else {
-                    return node.root.clone().unwrap()
-                }
+        fn find_next_node<T>(node: &TreeNode<T>) -> Rc<RefCell<TreeNode<T>>>{
+            if let Some(ref rc_l_child) = node.left_child.clone() {
+                return find_next_node(&rc_l_child.borrow())
+            } else {
+                return node.root.clone().unwrap()
             }
-            //Find in order successor
-            let rc_successor = find_next_node(&node.right_child.clone().unwrap().borrow());
-            
-            // Disjoin the successor node (creates simpler case 2 or 3)
-            let mut successor = rc_successor.borrow_mut();
-            let rebalance_start_node = successor.parent.clone().unwrap();
-            // Case 2 leaf node with parent
-            if successor.left_child.is_none() && successor.right_child.is_none() {
-                handle_case_2(&mut successor, Some(&mut node));
-            // Case 3 node with one child and maybe a parent (parent guaranteed here)
-            } else if successor.left_child.is_none() || successor.right_child.is_none() {
-                handle_case_3(&mut successor, Some(&mut node));
-            }
-
-            // Use disjoint successor node to replace target delete node in tree
-            let mut new_root:Option<Rc<RefCell<TreeNode<T>>>> = None;
-            if node.parent.is_none() {
-                new_root = successor.root.clone();
-            };
-            successor.parent = node.parent.take();
-            successor.left_child = node.left_child.take();
-            successor.right_child = node.right_child.take();
-
-            (new_root, rebalance_start_node)
         }
-        
         let node_to_delete = self.find(key.clone());
         let mut rebalance_start_node: Option<Rc<RefCell<TreeNode<_>>>> = None;
         // Ensure tree is not empty (Case 0)
@@ -129,21 +101,40 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
                 self.root = None;
                 //No rebalance needed
                 rebalance_start_node = None;
+                node.root = None; //This action will reduce the reference count to 0 for the deleted node and trigger the object to be deleted
             // Case 2 leaf node with parent
             } else if node.left_child.is_none() && node.right_child.is_none() {
                 rebalance_start_node = node.parent.clone();
                 handle_case_2(&mut node, None);
+                node.root = None; //This action will reduce the reference count to 0 for the deleted node and trigger the object to be deleted
             // Case 3 node with one child and maybe a parent
             } else if node.left_child.is_none() || node.right_child.is_none() {
                 rebalance_start_node = node.parent.clone();
                 self.set_root_after_rotate(handle_case_3(&mut node, None));
+                node.root = None; //This action will reduce the reference count to 0 for the deleted node and trigger the object to be deleted
             // Case 4 node with two children and maybe a parent
             } else if node.left_child.is_some() && node.right_child.is_some() {
-                let (new_root, rebalance_node) = handle_case_4(&mut node);
-                self.set_root_after_rotate(new_root);
-                rebalance_start_node = Some(rebalance_node);
+                 //Find in order successor
+                let rc_successor = find_next_node(&node.right_child.clone().unwrap().borrow());
+
+                // Delete the successor node 
+                // Case 2 leaf node with parent
+                let mut successor = rc_successor.borrow_mut();
+                if successor.left_child.is_none() && successor.right_child.is_none() {
+                    rebalance_start_node = successor.parent.clone();
+                    handle_case_2(&mut successor, Some(&mut node));
+                // Case 3 node with one child and maybe a parent
+                } else if successor.left_child.is_none() || successor.right_child.is_none() {
+                    rebalance_start_node = successor.parent.clone();
+                    self.set_root_after_rotate(handle_case_3(&mut successor, Some(&mut node)));
+                }
+
+                //Switch key of delete node with successor's key
+                node.key = successor.key.clone();
+
+                //Delete successor and not the delete node this time
+                successor.root = None;
             }
-            node.root = None; //This action will reduce the reference count to 0 for the deleted node and trigger the object to be deleted
         };
         
         //Re-Balance the tree starting at the deleted node and then going up to all ancestors
