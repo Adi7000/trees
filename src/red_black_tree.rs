@@ -23,6 +23,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
     pub fn new() -> Self {
         RedBlackTree { root: None }
     }
+    pub fn is_empty(&self) -> bool {
+        if self.root.is_none() {
+            true
+        } else {
+            false
+        }
+    }
     pub fn insert(&mut self, key: T) -> Option<Rc<RefCell<tree::TreeNode<T>>>> {
         if let Some(root) = &self.root {
             let new_node = root.borrow_mut().binary_tree_insert(key);

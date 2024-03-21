@@ -13,6 +13,13 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> AvlTree<T> {
     pub fn new() -> Self {
         AvlTree { root: None }
     }
+    pub fn is_empty(&self) -> bool {
+        if self.root.is_none() {
+            true
+        } else {
+            false
+        }
+    }
     pub fn delete(&mut self, key:T) {
         // Case 2 leaf node with parent
         fn handle_case_2<T: PartialOrd + std::fmt::Debug>(node: &mut TreeNode<T>, borrowed_node: Option<&mut TreeNode<T>>) {
