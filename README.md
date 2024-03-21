@@ -24,6 +24,8 @@ None outlined
 
 - As the tree gets bigger, the printing correctness degrades resulting in harder to read graphs.
 - Issues deleting when there is more than 11 nodes in Red-black trees.
+  - Issue more specifically happens when the parent of the deleted node (i.e. the inorder successor of the right subtree of the input key node) is red. But this condition (parent being red) is only necessary (but not sufficient) for the incorrect rebalancing to take place.
+
 
 ## User Manual
 
