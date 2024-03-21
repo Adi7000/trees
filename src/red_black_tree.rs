@@ -75,17 +75,36 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
                 let temp: Rc<RefCell<TreeNode<T>>> = Rc::clone(&in_order_min.as_ref().unwrap().borrow().left_child.as_ref().unwrap());
                 in_order_min = Some(Rc::clone(&temp));
             }
+            println!("in order min actual before transplant {:#?}", in_order_min.as_ref().unwrap().borrow().key);
 
             if let tree::Node::RedBlack(rbt) = in_order_min.as_ref().unwrap().borrow().kind {
                 delete_node_color = rbt.color.clone();
             }
 
             x = in_order_min.as_ref().unwrap().borrow().right_child.clone();
-            self.root = self.transplant(&in_order_min, &x);
 
-            in_order_min.as_ref().unwrap().borrow_mut().right_child = delete_node_rc.borrow().right_child.clone();
-            in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
+            if in_order_min.as_ref().unwrap().borrow().parent.as_ref().unwrap().borrow().key ==  delete_node_rc.borrow().key {
+                if x.is_some(){
+                    x.as_ref().unwrap().borrow_mut().parent = in_order_min.clone();
+                }
+            }
+            else {
+                self.root = self.transplant(&in_order_min, &in_order_min.as_ref().unwrap().borrow().right_child );
+                // self.root = self.transplant(&in_order_min, &x);
+                in_order_min.as_ref().unwrap().borrow_mut().right_child = delete_node_rc.borrow().right_child.clone();
+                in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = in_order_min.clone();
+            }
+
+            // in_order_min.as_ref().unwrap().borrow_mut().right_child = delete_node_rc.borrow().right_child.clone();
+            // in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
             self.root = self.transplant(&delete_node_rc.borrow().root, &in_order_min);
+            self.root.as_ref().unwrap().borrow_mut().parent = None;
+            self.root.as_ref().unwrap().borrow_mut().fix_height();
+
+            println!("in fixup this is delete node {:#?}", delete_node_rc.borrow().key);
+            println!("in fixup this is replacement node {:#?}", in_order_min.as_ref().unwrap().borrow().key);
+            println!("in fixup this is replacement node {:#?}", self.root.as_ref().unwrap().borrow().key);
+
 
             in_order_min.as_ref().unwrap().borrow_mut().left_child = Some(Rc::clone(&delete_node_rc.borrow().left_child.as_ref().unwrap()));
             in_order_min.as_ref().unwrap().borrow().left_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
@@ -96,12 +115,12 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         match delete_node_color {
             NodeColor::Black => {
                 println!("NEED DELETE FIXUP");
+                // println!("THIS NODE IS BEING DELETED {:#?}", x.as_ref().unwrap().borrow().key);
                 self.fix_delete(& x);
             }
             NodeColor::Red => {
-                return
+                return;
             }
-
         }        
     }
 
@@ -339,7 +358,9 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         }
 
         rcnode.borrow_mut().kind = Node::RedBlack(RedBlackNode {color: NodeColor::Black});
-
+        rcnode.borrow_mut().parent = None;
+        println!("IN FIX DELETE {:#?}", self.root.as_ref().unwrap().borrow().key);
+        // self.root = Some(Rc::clone(&rcnode));
     }
 
     fn recolor(&mut self, rb_tree: & Option<Rc<RefCell<tree::TreeNode<T>>>>){
@@ -456,8 +477,10 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
         // FIX HEIGHT UP TILL ROOT
         rcnode.borrow_mut().fix_height();
         while rcnode.borrow().parent.is_some() {
+            // println!("IN FIX INSERT");
             rcnode.borrow().parent.as_ref().unwrap().borrow_mut().fix_height();
             let x: Rc<RefCell<TreeNode<T>>> = Rc::clone(&rcnode.borrow().parent.as_ref().unwrap());
+            // println!("{:#?} {:#?}", rcnode.borrow().key, rcnode.borrow().parent.as_ref().unwrap().borrow().key);
 
             rcnode = Rc::clone(&x);
         }
