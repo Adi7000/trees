@@ -99,16 +99,17 @@ impl<T: Ord + Clone + std::fmt::Debug + std::fmt::Display> RedBlackTree<T> {
             // in_order_min.as_ref().unwrap().borrow().right_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
             self.root = self.transplant(&delete_node_rc.borrow().root, &in_order_min);
             self.root.as_ref().unwrap().borrow_mut().parent = None;
-            self.root.as_ref().unwrap().borrow_mut().fix_height();
+            // self.root.as_ref().unwrap().borrow_mut().fix_height();
 
             println!("in fixup this is delete node {:#?}", delete_node_rc.borrow().key);
             println!("in fixup this is replacement node {:#?}", in_order_min.as_ref().unwrap().borrow().key);
-            println!("in fixup this is replacement node {:#?}", self.root.as_ref().unwrap().borrow().key);
+            println!("in fixup this is root node {:#?}", self.root.as_ref().unwrap().borrow().key);
 
 
             in_order_min.as_ref().unwrap().borrow_mut().left_child = Some(Rc::clone(&delete_node_rc.borrow().left_child.as_ref().unwrap()));
             in_order_min.as_ref().unwrap().borrow().left_child.as_ref().unwrap().borrow_mut().parent = Some(Rc::clone(&in_order_min.as_ref().unwrap()));
             in_order_min.as_ref().unwrap().borrow_mut().kind = delete_node_rc.borrow().kind.clone();
+            self.root.as_ref().unwrap().borrow_mut().fix_height();
         }
 
 
