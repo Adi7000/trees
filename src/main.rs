@@ -55,7 +55,7 @@ fn run_manual() {
 fn run_avl() {
     let mut avl = avl_tree::AvlTree::new();
     loop {
-        println!("Enter 'i' to insert, 'd' to delete, 'p' to print tree, 'q' to quit");
+        println!("Enter 'i' to insert, 'd' to delete, 'p' to print tree, 'e' to check if empty, 'o' for in-order traversal, 'l' for leaf count, 'h' for height, 'q' to quit");
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         let input = input.trim();
@@ -79,6 +79,14 @@ fn run_avl() {
             avl.print_tree();
         } else if input == "q" {
             break;
+        } else if input == "e" {
+            println!("Tree is empty: {}", avl.is_empty());
+        } else if input == "o" {
+            avl.print_inorder();
+        } else if input == "l" {
+            println!("Leaf count: {}", avl.get_number_of_leaves());
+        } else if input == "h" {
+            println!("Height: {}", avl.height());
         } else {
             println!("Invalid input");
         }
@@ -88,7 +96,7 @@ fn run_avl() {
 fn run_rb() {
     let mut rb = red_black_tree::RedBlackTree::new();
     loop {
-        println!("Enter 'i' to insert, 'd' to delete, 'p' to print tree, 'q' to quit");
+        println!("Enter 'i' to insert, 'd' to delete, 'p' to print tree, 'e' to check if empty, 'o' for in-order traversal, 'l' for leaf count, 'h' for height, 'q' to quit");
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         let input = input.trim();
@@ -112,6 +120,14 @@ fn run_rb() {
             rb.print_tree();
         } else if input == "q" {
             break;
+        } else if input == "e" {
+            println!("Tree is empty: {}", rb.is_empty());
+        } else if input == "o" {
+            rb.print_inorder();
+        } else if input == "l" {
+            println!("Leaf count: {}", rb.get_number_of_leaves());
+        } else if input == "h" {
+            println!("Height: {}", rb.height());
         } else {
             println!("Invalid input");
         }
